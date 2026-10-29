@@ -1,0 +1,55 @@
+name: Build Native iOS IPA (Duldul Vision AR)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build iOS IPA with RealityKit & ARKit
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Select Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app
+
+      - name: Verify Xcode & Swift Version
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Build and Archive iOS App
+        run: |
+          cd ios-app/DuldulVisionAR
+          mkdir -p build
+          
+          # Clean and build archive without code signing
+          xcodebuild archive \
+            -project DuldulVisionAR.xcodeproj \
+            -scheme DuldulVisionAR \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            -archivePath build/DuldulVisionAR.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES
+
+      - name: Package Payload into IPA
+        run: |
+          cd ios-app/DuldulVisionAR/build
+          mkdir -p Payload
+          cp -r DuldulVisionAR.xcarchive/Products/Applications/DuldulVisionAR.app Payload/
+          zip -r DuldulVisionAR-Release.ipa Payload
+          ls -la DuldulVisionAR-Release.ipa
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DuldulVisionAR-Release-IPA
+          path: ios-app/DuldulVisionAR/build/DuldulVisionAR-Release.ipa
+          retention-days: 14

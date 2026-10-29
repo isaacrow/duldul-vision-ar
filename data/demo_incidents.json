@@ -1,0 +1,30 @@
+[
+  {
+    "id": "demo-inc-1",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي - ساحة التحرير",
+    "name_en": "Demo Traffic Jam - Tahrir Square",
+    "desc": "نموذج افتراضي للاختبار فقط وغير واقعي",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 8,
+    "verified": false,
+    "verificationStatus": "demo_only",
+    "timestamp": 1700000000000
+  },
+  {
+    "id": "demo-inc-2",
+    "type": "road_work",
+    "name_ar": "صيانة تجريبية - شارع الكرادة",
+    "name_en": "Demo Roadwork - Karrada Street",
+    "desc": "نموذج افتراضي للاختبار فقط وغير واقعي",
+    "lat": 33.305,
+    "lng": 44.432,
+    "city": "بغداد",
+    "votes": 4,
+    "verified": false,
+    "verificationStatus": "demo_only",
+    "timestamp": 1700000000000
+  }
+]

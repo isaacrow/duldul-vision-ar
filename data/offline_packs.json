@@ -1,0 +1,59 @@
+[
+  {
+    "id": "pack-baghdad",
+    "name_ar": "بغداد الكبرى (العاصمة وضواحيها)",
+    "name_en": "Greater Baghdad Region",
+    "version": "2026.10.1",
+    "updatedAt": "2026-10-28",
+    "bounds": {
+      "minLat": 33.15,
+      "maxLat": 33.45,
+      "minLng": 44.15,
+      "maxLng": 44.55
+    },
+    "components": {
+      "mapTiles": { "sizeMb": 18.5, "status": "available", "format": "MVT/Raster-Cached" },
+      "routingGraph": { "sizeMb": 6.2, "status": "available", "format": "GeoJSON/Topology" },
+      "placesSearch": { "sizeMb": 1.4, "status": "available", "format": "JSON-IndexedDB" }
+    },
+    "totalSizeMb": 26.1
+  },
+  {
+    "id": "pack-erbil",
+    "name_ar": "أربيل (إقليم كوردستان)",
+    "name_en": "Erbil City Region",
+    "version": "2026.10.1",
+    "updatedAt": "2026-10-28",
+    "bounds": {
+      "minLat": 36.10,
+      "maxLat": 36.30,
+      "minLng": 43.90,
+      "maxLng": 44.15
+    },
+    "components": {
+      "mapTiles": { "sizeMb": 12.0, "status": "available", "format": "MVT/Raster-Cached" },
+      "routingGraph": { "sizeMb": 4.1, "status": "available", "format": "GeoJSON/Topology" },
+      "placesSearch": { "sizeMb": 0.9, "status": "available", "format": "JSON-IndexedDB" }
+    },
+    "totalSizeMb": 17.0
+  },
+  {
+    "id": "pack-basra",
+    "name_ar": "البصرة (المدينة والموانئ)",
+    "name_en": "Basra City Center",
+    "version": "2026.10.1",
+    "updatedAt": "2026-10-28",
+    "bounds": {
+      "minLat": 30.40,
+      "maxLat": 30.65,
+      "minLng": 47.70,
+      "maxLng": 47.95
+    },
+    "components": {
+      "mapTiles": { "sizeMb": 14.2, "status": "available", "format": "MVT/Raster-Cached" },
+      "routingGraph": { "sizeMb": 4.8, "status": "available", "format": "GeoJSON/Topology" },
+      "placesSearch": { "sizeMb": 1.1, "status": "available", "format": "JSON-IndexedDB" }
+    },
+    "totalSizeMb": 20.1
+  }
+]

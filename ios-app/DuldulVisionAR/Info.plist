@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>iq.duldul.visionar</string>
+    <key>CFBundleName</key>
+    <string>DuldulVisionAR</string>
+    <key>CFBundleDisplayName</key>
+    <string>دلدل AR</string>
+    <key>CFBundleExecutable</key>
+    <string>DuldulVisionAR</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>MinimumOSVersion</key>
+    <string>16.0</string>
+    
+    <!-- ARKit & Camera Hardware Permissions -->
+    <key>NSCameraUsageDescription</key>
+    <string>يتطلب تطبيق دلدل الإذن باستخدام الكاميرا ومستشعر LiDAR للتعرف المكاني على الشوارع والشواخص والمعالم ثلاثية الأبعاد.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>يتطلب دلدل موقعك الجغرافي لحساب مسارات القيادة وتثبيت المعالم المكانية في مدن العراق بدقة عالية.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>يتطلب دلدل الوصول للموقع في الخلفية لتقديم التوجيه الملاحي اللحظي والتنبيه الصوتي عن الحوادث والسيطرات.</string>
+    
+    <!-- Hardware Capabilities -->
+    <key>UIRequiredDeviceCapabilities</key>
+    <array>
+        <string>arm64</string>
+        <string>arkit</string>
+    </array>
+    
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+    </array>
+    
+    <key>UILaunchScreen</key>
+    <dict/>
+    <key>UIStatusBarHidden</key>
+    <true/>
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+</dict>
+</plist>

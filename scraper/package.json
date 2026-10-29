@@ -1,0 +1,9 @@
+{
+  "name": "scraper",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "scrape_iraq_places.js",
+  "dependencies": {
+    "puppeteer-core": "^25.16.0"
+  }
+}

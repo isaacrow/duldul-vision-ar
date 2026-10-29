@@ -1,0 +1,16 @@
+{
+  "name": "masar-iraq",
+  "version": "1.0.0",
+  "description": "High-integrity community navigation and mapping platform for the Republic of Iraq",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/api_checks.js"
+  },
+  "dependencies": {
+    "@turf/turf": "^7.4.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "ws": "^8.17.0"
+  }
+}

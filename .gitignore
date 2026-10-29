@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+*.log
+ios-app/DuldulVisionAR/build/
+ios-app/DuldulVisionAR/*.ipa
+ios-app/DuldulVisionAR/*.xcarchive
+python-vision-server/__pycache__/
+python-vision-server/*.pt
+.venv/

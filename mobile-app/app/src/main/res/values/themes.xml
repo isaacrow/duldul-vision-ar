@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.MasarIraq" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/apple_green</item>
+        <item name="colorPrimaryVariant">@color/apple_green_dark</item>
+        <item name="colorOnPrimary">@color/apple_text_primary</item>
+        <item name="android:statusBarColor">@color/apple_bg</item>
+        <item name="android:navigationBarColor">@color/apple_bg</item>
+    </style>
+</resources>

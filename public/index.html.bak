@@ -1,0 +1,3083 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>دلدل — ملاحة العراق</title>
+
+  <!-- PWA Manifest & Meta -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#f2f2f7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="icon" href="/logo.jpg" type="image/jpeg">
+  <link rel="apple-touch-icon" href="/logo.jpg">
+
+  <!-- MapLibre GL CSS -->
+  <link href="https://unpkg.com/maplibre-gl@4.1.0/dist/maplibre-gl.css" rel="stylesheet" />
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Cairo & Inter Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       🇮🇶 مسار العراق (Masar Iraq) — Iraqi community navigation
+       Arabic-first interface • traffic data shown with confidence and age
+       ========================================================================== */
+    :root {
+      --ios-bg: #f2f2f7;
+      --ios-card: rgba(255, 255, 255, 0.94);
+      --ios-card-solid: #ffffff;
+      --ios-border: rgba(0, 0, 0, 0.08);
+      --ios-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+      --ios-shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.08);
+      --ios-green: #137b68;
+      --ios-green-dark: #0e5f52;
+      --ios-blue: #168a78;
+      --ios-red: #c74435;
+      --ios-orange: #d49b42;
+      --ios-text: #1c1c1e;
+      --ios-text-secondary: #8e8e93;
+      --ios-text-tertiary: #aeaeb2;
+      --ios-separator: #e5e5ea;
+      --ios-blur: blur(24px) saturate(180%);
+    }
+
+    body.dark-mode {
+      --ios-bg: #000000;
+      --ios-card: rgba(28, 28, 30, 0.9);
+      --ios-card-solid: #1c1c1e;
+      --ios-border: rgba(255, 255, 255, 0.12);
+      --ios-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      --ios-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.3);
+      --ios-text: #ffffff;
+      --ios-text-secondary: #98989d;
+      --ios-text-tertiary: #636366;
+      --ios-separator: #2c2c2e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: text;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Cairo', 'SF Pro Display', 'Inter', system-ui, sans-serif;
+      background: var(--ios-bg);
+      color: var(--ios-text);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      letter-spacing: -0.01em;
+    }
+
+    #map {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+
+    
+    /* ==========================================================================
+       Liquid Glass Design System (iOS 18 & Glassmorphism)
+       Inspired by https://freefrontend.com/css-liquid-glass/
+       ========================================================================== */
+    .liquid-glass {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.68) 0%, rgba(255, 255, 255, 0.42) 100%) !important;
+      -webkit-backdrop-filter: blur(28px) saturate(210%) brightness(1.04) !important;
+      backdrop-filter: blur(28px) saturate(210%) brightness(1.04) !important;
+      border: 1px solid rgba(255, 255, 255, 0.6) !important;
+      box-shadow: 
+        0 16px 38px -10px rgba(0, 0, 0, 0.12),
+        0 4px 12px rgba(0, 0, 0, 0.04),
+        inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.9),
+        inset 0 -1px 2px 0 rgba(0, 0, 0, 0.04) !important;
+      position: relative;
+    }
+
+    body.dark-mode .liquid-glass {
+      background: linear-gradient(135deg, rgba(30, 32, 38, 0.72) 0%, rgba(18, 19, 23, 0.55) 100%) !important;
+      -webkit-backdrop-filter: blur(32px) saturate(200%) brightness(1.1) !important;
+      backdrop-filter: blur(32px) saturate(200%) brightness(1.1) !important;
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
+      box-shadow: 
+        0 24px 50px -10px rgba(0, 0, 0, 0.65),
+        inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.25),
+        inset 0 -1px 2px 0 rgba(0, 0, 0, 0.4) !important;
+    }
+
+    /* Driving Cockpit Layout */
+    body.in-driving-mode #appleHeader,
+    body.in-driving-mode #appleDrawer,
+    body.in-driving-mode .attribution-bar,
+    body.in-driving-mode .apple-side-stack {
+      display: none !important;
+    }
+
+    .driving-cockpit-top {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      left: 14px;
+      max-width: 540px;
+      margin: 0 auto;
+      z-index: 35;
+      border-radius: 24px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      animation: slideDownIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .driving-maneuver-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .maneuver-big-badge {
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      background: var(--ios-green);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      box-shadow: 0 8px 24px rgba(52, 199, 89, 0.38);
+      flex-shrink: 0;
+    }
+
+    .maneuver-text-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .maneuver-distance {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--ios-text);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .maneuver-street {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ios-text-secondary);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .maneuver-sub-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--ios-blue);
+      font-weight: 600;
+    }
+
+    /* Lane Guidance Bar */
+    .lane-guidance-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: rgba(0, 0, 0, 0.04);
+      border-radius: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+
+    body.dark-mode .lane-guidance-bar {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.06);
+    }
+
+    .lane-box {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.06);
+      color: var(--ios-text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+
+    body.dark-mode .lane-box {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .lane-box.highlight {
+      background: var(--ios-green);
+      color: #fff;
+      font-weight: 800;
+      box-shadow: 0 2px 8px rgba(52, 199, 89, 0.4);
+    }
+
+    .lane-advice {
+      margin-inline-start: auto;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ios-text);
+    }
+
+    /* Proximity Hazard Alert Banner */
+    .hazard-alert-banner {
+      position: absolute;
+      top: 140px;
+      right: 14px;
+      left: 14px;
+      max-width: 500px;
+      margin: 0 auto;
+      z-index: 34;
+      border-radius: 18px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-right: 4px solid var(--ios-orange) !important;
+      animation: pulseAlert 1.5s infinite alternate;
+    }
+
+    .hazard-alert-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(255, 149, 0, 0.15);
+      color: var(--ios-orange);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .hazard-alert-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hazard-alert-content strong {
+      font-size: 13px;
+      color: var(--ios-text);
+    }
+
+    .hazard-alert-content small {
+      font-size: 11px;
+      color: var(--ios-text-secondary);
+    }
+
+    .hazard-dismiss-btn {
+      background: transparent;
+      border: none;
+      color: var(--ios-text-tertiary);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px;
+    }
+
+    /* Driving Speedometer Stack */
+    .driving-speed-stack {
+      position: absolute;
+      top: 140px;
+      left: 14px;
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .speed-meter-capsule {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .speed-meter-capsule .speed-value {
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--ios-text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .speed-meter-capsule .speed-unit {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--ios-text-secondary);
+      margin-top: 2px;
+    }
+
+    .speed-limit-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 3.5px solid #ff3b30;
+      background: #ffffff;
+      color: #000000;
+      font-weight: 900;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .speed-limit-badge.speeding {
+      animation: pulseRed 0.8s infinite;
+    }
+
+    /* Bottom Driving Cockpit Bar */
+    .driving-cockpit-bottom {
+      position: absolute;
+      bottom: 16px;
+      right: 14px;
+      left: 14px;
+      max-width: 540px;
+      margin: 0 auto;
+      z-index: 35;
+      border-radius: 28px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      animation: slideUpIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .cockpit-stats-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cockpit-eta-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cockpit-eta-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ios-text-secondary);
+    }
+
+    .cockpit-eta-time {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--ios-green);
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+
+    .cockpit-divider {
+      width: 1px;
+      height: 36px;
+      background: var(--ios-border);
+    }
+
+    .cockpit-stat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ios-text);
+    }
+
+    .cockpit-actions-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .cockpit-action-btn {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      color: var(--ios-text);
+      border-radius: 16px;
+      padding: 10px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    body.dark-mode .cockpit-action-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .cockpit-action-btn i {
+      font-size: 15px;
+    }
+
+    .cockpit-action-btn:active {
+      transform: scale(0.92);
+    }
+
+    .cockpit-action-btn.btn-hazard-report {
+      background: linear-gradient(135deg, #ff9500, #ff5e3a);
+      color: #fff;
+      border: none;
+      box-shadow: 0 4px 14px rgba(255, 149, 0, 0.35);
+    }
+
+    .cockpit-action-btn.btn-stop-drive {
+      background: rgba(255, 59, 48, 0.12);
+      color: #ff3b30;
+      border-color: rgba(255, 59, 48, 0.2);
+    }
+
+    /* Quick Hazard Grid */
+    .quick-hazard-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .quick-hazard-tile {
+      background: var(--ios-card-solid);
+      border: 1px solid var(--ios-border);
+      border-radius: 16px;
+      padding: 14px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ios-text);
+      cursor: pointer;
+      box-shadow: var(--ios-shadow-sm);
+      transition: transform 0.18s ease;
+    }
+
+    .quick-hazard-tile:active {
+      transform: scale(0.94);
+    }
+
+    .quick-hazard-tile i {
+      font-size: 22px;
+    }
+
+    /* Alternative Route Badges on Map */
+    .alt-route-pill {
+      background: rgba(255, 255, 255, 0.94);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border: 1.5px solid #007aff;
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #007aff;
+      box-shadow: 0 4px 14px rgba(0, 122, 255, 0.25);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.2s ease;
+    }
+
+    .alt-route-pill:hover {
+      transform: scale(1.08);
+    }
+
+    @keyframes slideDownIn {
+      from { transform: translateY(-30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes slideUpIn {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes pulseAlert {
+      from { box-shadow: 0 8px 24px rgba(255, 149, 0, 0.2); }
+      to { box-shadow: 0 12px 32px rgba(255, 149, 0, 0.45); }
+    }
+
+    @keyframes pulseRed {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.6); }
+      50% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(255, 59, 48, 0); }
+    }
+
+    /* Minimal Attribution */
+    .attribution-bar {
+      position: absolute;
+      bottom: 6px;
+      left: 10px;
+      z-index: 10;
+      font-size: 10px;
+      color: var(--ios-text-tertiary);
+      background: var(--ios-card);
+      -webkit-backdrop-filter: var(--ios-blur);
+      backdrop-filter: var(--ios-blur);
+      padding: 3px 8px;
+      border-radius: 12px;
+      border: 1px solid var(--ios-border);
+    }
+
+    .attribution-bar a {
+      color: var(--ios-text-secondary);
+      text-decoration: none;
+    }
+
+    /* Floating Apple Search Header */
+    .apple-header {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      left: 14px;
+      max-width: 520px;
+      margin: 0 auto;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all 0.3s ease;
+    }
+
+    
+    .brand-logo-img {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      object-fit: contain;
+      background: #ffffff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+    .brand-logo-img:hover {
+      transform: scale(1.05);
+    }
+
+    .search-capsule {
+      background: var(--ios-card);
+      -webkit-backdrop-filter: var(--ios-blur);
+      backdrop-filter: var(--ios-blur);
+      border-radius: 18px;
+      border: 1px solid var(--ios-border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: var(--ios-shadow);
+      transition: all 0.25s ease;
+    }
+
+    .search-capsule:focus-within {
+      background: var(--ios-card-solid);
+      border-color: var(--ios-blue);
+      box-shadow: 0 6px 28px rgba(0, 122, 255, 0.2);
+    }
+
+    .search-icon {
+      color: var(--ios-blue);
+      font-size: 16px;
+    }
+
+    .search-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--ios-text);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    body.lang-en .search-input {
+      text-align: left;
+    }
+
+    .search-input::placeholder {
+      color: var(--ios-text-tertiary);
+    }
+
+    /* Apple Quick Categories Row */
+    .quick-categories {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+
+    .quick-categories::-webkit-scrollbar {
+      display: none;
+    }
+
+    .category-chip {
+      background: var(--ios-card);
+      -webkit-backdrop-filter: var(--ios-blur);
+      backdrop-filter: var(--ios-blur);
+      border: 1px solid var(--ios-border);
+      color: var(--ios-text);
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: var(--ios-shadow-sm);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .category-chip:active {
+      transform: scale(0.95);
+    }
+
+    .category-chip.active {
+      background: var(--ios-blue);
+      color: #fff;
+      border-color: var(--ios-blue);
+    }
+
+    .category-chip.chip-radar {
+      background: linear-gradient(135deg, rgba(0, 122, 255, 0.15), rgba(52, 199, 89, 0.15));
+      border: 1px solid rgba(0, 122, 255, 0.3);
+      color: var(--ios-blue);
+      font-weight: 700;
+    }
+
+    /* Floating Apple Right Control Stack */
+    .apple-side-stack {
+      position: absolute;
+      left: 14px;
+      top: 130px;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    body.lang-en .apple-side-stack {
+      left: auto;
+      right: 14px;
+    }
+
+    .glass-control-group {
+      background: var(--ios-card);
+      -webkit-backdrop-filter: var(--ios-blur);
+      backdrop-filter: var(--ios-blur);
+      border: 1px solid var(--ios-border);
+      border-radius: 18px;
+      box-shadow: var(--ios-shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .glass-control-btn {
+      width: 46px;
+      height: 46px;
+      border: none;
+      background: transparent;
+      color: var(--ios-text);
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .glass-control-btn:active {
+      background: rgba(0, 0, 0, 0.08);
+    }
+
+    .glass-control-btn:not(:last-child) {
+      border-bottom: 1px solid var(--ios-border);
+    }
+
+    .btn-report-hazard {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #d49b42, #c74435);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 4px 16px rgba(255, 59, 48, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .btn-report-hazard:active {
+      transform: scale(0.92);
+    }
+
+    /* Search Autocomplete Results */
+    .search-results-sheet {
+      background: var(--ios-card-solid);
+      border: 1px solid var(--ios-border);
+      border-radius: 20px;
+      max-height: 280px;
+      overflow-y: auto;
+      box-shadow: var(--ios-shadow);
+      display: none;
+    }
+
+    .poi-item {
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      border-bottom: 1px solid var(--ios-separator);
+      transition: background 0.15s;
+    }
+
+    .poi-item:hover, .poi-item:active {
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    /* Apple Driving Navigation HUD (Active Navigation Mode) */
+    .apple-nav-hud {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      left: 14px;
+      max-width: 540px;
+      margin: 0 auto;
+      z-index: 30;
+      background: #145a4a;
+      color: #fff;
+      border-radius: 24px;
+      padding: 16px 20px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+      display: none;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-arrow-badge {
+      width: 52px;
+      height: 52px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      color: #fff;
+    }
+
+    .nav-info-col {
+      flex: 1;
+      text-align: inherit;
+    }
+
+    .nav-distance-text {
+      font-size: 14px;
+      font-weight: 700;
+      opacity: 0.9;
+    }
+
+    .nav-street-text {
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    /* Speedometer & Speed Limit Indicator */
+    .speed-badge-hud {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 25;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    body.lang-en .speed-badge-hud {
+      right: auto;
+      left: 14px;
+    }
+
+    .speed-limit-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3.5px solid #c74435;
+      color: #000000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 16px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    }
+
+    .current-speed-pill {
+      background: var(--ios-card);
+      -webkit-backdrop-filter: var(--ios-blur);
+      backdrop-filter: var(--ios-blur);
+      border: 1px solid var(--ios-border);
+      border-radius: 16px;
+      padding: 6px 12px;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--ios-text);
+      box-shadow: var(--ios-shadow-sm);
+    }
+
+    /* Apple Bottom Drawer Sheet (Draggable Snap Sheet) */
+    .apple-bottom-drawer {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      max-width: 540px;
+      margin: 0 auto;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .apple-sheet-card {
+      background: var(--ios-card);
+      -webkit-backdrop-filter: var(--ios-blur);
+      backdrop-filter: var(--ios-blur);
+      border-top: 1px solid var(--ios-border);
+      border-radius: 28px 28px 0 0;
+      padding: 12px 20px 24px 20px;
+      box-shadow: var(--ios-shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 75vh;
+      overflow-y: auto;
+      transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .sheet-handle {
+      width: 38px;
+      height: 5px;
+      border-radius: 2.5px;
+      background: var(--ios-text-tertiary);
+      margin: 0 auto 6px auto;
+      cursor: grab;
+    }
+
+    .drawer-content-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .eta-display {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--ios-green);
+      letter-spacing: -0.02em;
+    }
+
+    .destination-subtext {
+      font-size: 13px;
+      color: var(--ios-text-secondary);
+      font-weight: 500;
+    }
+
+    .apple-btn-go {
+      background: var(--ios-green);
+      color: #fff;
+      border: none;
+      border-radius: 18px;
+      padding: 12px 26px;
+      font-size: 16px;
+      font-weight: 800;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(52, 199, 89, 0.4);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .apple-btn-go:active {
+      transform: scale(0.96);
+    }
+
+    .apple-btn-preview {
+      background: var(--ios-card-solid);
+      color: var(--ios-blue);
+      border: 1px solid var(--ios-border);
+      border-radius: 18px;
+      padding: 11px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Active Trip Stats Floating Capsule */
+    .apple-trip-capsule {
+      position: absolute;
+      bottom: 20px;
+      right: 14px;
+      left: 14px;
+      max-width: 520px;
+      margin: 0 auto;
+      z-index: 25;
+      background: var(--ios-card);
+      -webkit-backdrop-filter: var(--ios-blur);
+      backdrop-filter: var(--ios-blur);
+      border: 1px solid var(--ios-border);
+      border-radius: 30px;
+      padding: 12px 20px;
+      box-shadow: var(--ios-shadow);
+      display: none;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .apple-btn-close {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--ios-red);
+      color: #fff;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+    }
+
+    /* Baghdad Bridges Radar Modal / Section */
+    .bridge-card {
+      background: var(--ios-card-solid);
+      border: 1px solid var(--ios-border);
+      border-radius: 16px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    .bridge-card:active {
+      transform: scale(0.98);
+    }
+
+    .bridge-status-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-open {
+      background: rgba(52, 199, 89, 0.15);
+      color: var(--ios-green);
+    }
+
+    .status-congested {
+      background: rgba(255, 149, 0, 0.15);
+      color: var(--ios-orange);
+    }
+
+    .status-closed {
+      background: rgba(255, 59, 48, 0.15);
+      color: var(--ios-red);
+    }
+
+    /* Modals (Clean iOS Sheet Dialog) */
+    .apple-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    @media (min-width: 600px) {
+      .apple-modal-overlay {
+        align-items: center;
+      }
+    }
+
+    .apple-modal-sheet {
+      background: var(--ios-card-solid);
+      border-radius: 28px;
+      padding: 24px;
+      width: 100%;
+      max-width: 500px;
+      text-align: right;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    }
+
+    body.lang-en .apple-modal-sheet {
+      text-align: left;
+    }
+
+    .apple-input {
+      width: 100%;
+      background: var(--ios-bg);
+      border: 1px solid var(--ios-border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: var(--ios-text);
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      margin-top: 6px;
+    }
+
+
+    .brand-row { display:flex; align-items:center; gap:10px; padding:2px 4px; }
+    .brand-mark {
+      width:36px; height:36px; border-radius:12px; display:grid; place-items:center;
+      color:#fff; background:linear-gradient(145deg,#147b68,#0d5449);
+      font-size:17px; font-weight:900; box-shadow:0 5px 14px rgba(13,84,73,.24);
+    }
+    .brand-copy { display:flex; flex-direction:column; line-height:1.1; }
+    .brand-copy strong { font-size:14px; font-weight:900; }
+    .brand-copy small { margin-top:3px; color:var(--ios-text-secondary); font-size:10px; }
+    .location-status {
+      margin-inline-start:auto; max-width:150px; padding:6px 9px; overflow:hidden;
+      text-overflow:ellipsis; white-space:nowrap; border:1px solid var(--ios-border);
+      border-radius:999px; background:var(--ios-card); color:var(--ios-text-secondary);
+      font-size:10px; font-weight:700;
+    }
+    .traffic-legend {
+      display:flex; flex-wrap:wrap; align-items:center; gap:8px;
+      padding:7px 10px; border:1px solid var(--ios-border); border-radius:12px;
+      background:var(--ios-card); color:var(--ios-text-secondary); font-size:10px;
+    }
+    .traffic-legend-item { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+    .traffic-legend-dot { width:8px; height:8px; border-radius:50%; }
+    .traffic-status, .route-estimate {
+      padding:8px 11px; border:1px solid var(--ios-border); border-radius:13px;
+      background:var(--ios-card); color:var(--ios-text-secondary); font-size:11px; line-height:1.45;
+    }
+    .contribution-panel {
+      padding:9px 11px; border:1px solid var(--ios-border); border-radius:15px;
+      background:rgba(19,123,104,.07);
+    }
+    .consent-label { display:flex; align-items:center; gap:8px; font-size:12px; font-weight:800; cursor:pointer; }
+    .consent-label input { width:17px; height:17px; accent-color:var(--ios-green); }
+    .consent-help { margin:5px 0 0 25px; color:var(--ios-text-secondary); font-size:10px; line-height:1.4; }
+    .route-options { display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; }
+    .route-options::-webkit-scrollbar { display:none; }
+    .route-option {
+      min-width:122px; padding:9px 11px; border:1px solid var(--ios-border);
+      border-radius:15px; background:var(--ios-card-solid); color:var(--ios-text);
+      text-align:right; cursor:pointer;
+    }
+    body.lang-en .route-option { text-align:left; }
+    .route-option.active { border-color:var(--ios-green); box-shadow:0 0 0 2px rgba(19,123,104,.14); }
+    .route-option strong, .route-option span { display:block; }
+    .route-option strong { font-size:11px; }
+    .route-option span { margin-top:4px; color:var(--ios-text-secondary); font-size:10px; }
+    .status-toast {
+      position:absolute; top:116px; left:50%; z-index:50; max-width:calc(100vw - 32px);
+      padding:10px 14px; border:1px solid rgba(255,255,255,.28); border-radius:14px;
+      background:rgba(25,35,32,.92); color:#fff; font-size:12px; line-height:1.45;
+      box-shadow:0 8px 24px rgba(0,0,0,.2); opacity:0; pointer-events:none;
+      transform:translate(-50%,-8px); transition:opacity .2s ease,transform .2s ease;
+    }
+    .status-toast.visible { opacity:1; transform:translate(-50%,0); }
+    .incident-popup { min-width:180px; direction:rtl; color:#18231f; }
+    .incident-popup strong { display:block; margin-bottom:5px; font-size:13px; }
+    .incident-popup small { display:block; color:#59645f; font-size:11px; line-height:1.5; }
+    .incident-actions { display:flex; gap:7px; margin-top:9px; }
+    .incident-actions button {
+      flex:1; padding:7px 8px; border:0; border-radius:9px; background:#137b68;
+      color:#fff; font:inherit; font-size:11px; font-weight:700; cursor:pointer;
+    }
+    .incident-actions button:last-child { background:#eef1ef; color:#33423b; }
+
+    
+    /* Advanced Apple/Waze Navigational Photon Puck */
+    .vehicle-puck-container {
+      position: relative;
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .vehicle-light-beam {
+      position: absolute;
+      top: -24px;
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-bottom: 32px solid rgba(0, 122, 255, 0.28);
+      filter: blur(3px);
+      pointer-events: none;
+    }
+
+    .vehicle-pulse-ring {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(0, 122, 255, 0.22);
+      animation: vehiclePulse 2.2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+      pointer-events: none;
+    }
+
+    .vehicle-puck-core {
+      position: relative;
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #007aff, #0056b3);
+      border: 3px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 
+        0 4px 18px rgba(0, 122, 255, 0.55),
+        0 2px 6px rgba(0, 0, 0, 0.25),
+        inset 0 1px 1px rgba(255, 255, 255, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 13px;
+      transition: transform 0.15s ease;
+    }
+
+    @keyframes vehiclePulse {
+      0% { transform: scale(0.65); opacity: 0.9; }
+      100% { transform: scale(2.3); opacity: 0; }
+    }
+
+    /* Draggable Bottom Sheet Snapping */
+    .apple-sheet-card {
+      transition: height 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sheet-handle {
+      cursor: grab;
+      padding: 6px;
+      margin: -6px auto 8px;
+    }
+    .sheet-handle:active {
+      cursor: grabbing;
+    }
+
+    /* Quick Nav Action inside POI Search Results */
+    .poi-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background 0.18s ease;
+    }
+    .poi-item:hover {
+      background: rgba(0, 122, 255, 0.08);
+    }
+    .poi-icon-box {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: rgba(0, 122, 255, 0.1);
+      color: var(--ios-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    /* Vehicle Avatar */
+    .vehicle-puck {
+      width: 42px;
+      height: 42px;
+      background: #168a78;
+      border: 3.5px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(0, 122, 255, 0.85), 0 4px 12px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 19px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MapLibre WebGL Canvas Container -->
+  <div id="map"></div>
+  <div class="status-toast" id="statusToast" role="status" aria-live="polite"></div>
+
+  <!-- Minimal Attribution -->
+  <div class="attribution-bar">
+    &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors | &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO Voyager</a>
+  </div>
+
+  <!-- Speedometer & Speed Limit HUD (In Drive Mode) -->
+  <div class="speed-badge-hud liquid-glass" id="speedBadgeHud">
+    <div class="speed-limit-circle" id="speedLimitText" title="بيانات حدود السرعة غير متاحة">--</div>
+    <div class="current-speed-pill"><span id="liveSpeedText">0</span> كم/س</div>
+  </div>
+
+  <!-- Top Apple Header (Browsing Mode) -->
+  <div class="apple-header" id="appleHeader">
+    <div class="brand-row">
+      <img src="/logo.jpg" alt="دلدل" class="brand-logo-img" style="width:36px; height:36px; border-radius:10px; object-fit:contain; border:1px solid rgba(0,0,0,0.08); background:#fff;">
+      <div class="brand-copy"><strong>دلدل</strong><small>ملاحة مجتمعية محلية</small></div>
+      <span class="location-status" id="locationStatus" role="status">بانتظار GPS</span>
+    </div>
+    <div class="search-capsule liquid-glass">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input type="text" id="searchInput" class="search-input" placeholder="ابحث في دلدل عن أي مكان في العراق..." autocomplete="off">
+      <i class="fa-solid fa-circle-xmark" id="btnClearSearch" style="color:var(--ios-text-tertiary); cursor:pointer; display:none;" onclick="clearSearch()"></i>
+    </div>
+
+    <!-- Quick Filter Categories -->
+    <div class="quick-categories" id="quickCategories">
+      <button class="category-chip liquid-glass chip-radar" onclick="playHapticClick(); openBridgesModal()"><i class="fa-solid fa-bridge-water"></i> جسور بغداد</button>
+      <button class="category-chip" onclick="playHapticClick(); searchCategory('وقود')"><i class="fa-solid fa-gas-pump"></i> محطات وقود</button>
+      <button class="category-chip" onclick="playHapticClick(); searchCategory('مستشفى')"><i class="fa-solid fa-hospital"></i> مستشفيات</button>
+      <button class="category-chip" onclick="playHapticClick(); searchCategory('مطعم')"><i class="fa-solid fa-utensils"></i> مطاعم ومقاهي</button>
+      <button class="category-chip" onclick="playHapticClick(); searchCategory('مطار')"><i class="fa-solid fa-plane-departure"></i> مطارات</button>
+      <button class="category-chip" onclick="playHapticClick(); openDialectModal()"><i class="fa-solid fa-microphone-lines"></i> اللهجة العراقية</button>
+    </div>
+
+    <div class="traffic-status" id="trafficStatus" role="status">لا توجد بيانات سرعة مجتمعية كافية بعد</div>
+    <div class="traffic-legend" id="trafficLegend" style="display:none;">
+      <span class="traffic-legend-item"><i class="traffic-legend-dot" style="background:#c74435"></i> أبطأ من 15 كم/س</span>
+      <span class="traffic-legend-item"><i class="traffic-legend-dot" style="background:#d49b42"></i> 15–30 كم/س</span>
+      <span class="traffic-legend-item"><i class="traffic-legend-dot" style="background:#137b68"></i> أكثر من 30 كم/س</span>
+      <span class="traffic-legend-item">خلية تقريبية 1 كم</span>
+    </div>
+    <div class="search-results-sheet" id="searchResults"></div>
+  </div>
+
+  
+  <!-- Dedicated Waze-Style Apple Liquid Glass Driving Cockpit -->
+  <div class="driving-cockpit-top liquid-glass" id="drivingCockpitTop" style="display:none;">
+    <div class="driving-maneuver-row">
+      <div class="maneuver-big-badge">
+        <i class="fa-solid fa-arrow-turn-up" id="drivingManeuverIcon"></i>
+      </div>
+      <div class="maneuver-text-col">
+        <div class="maneuver-distance" id="drivingDistance">في 350 م</div>
+        <div class="maneuver-street" id="drivingStreet">شارع الكرادة داخل</div>
+        <div class="maneuver-sub-hint" id="drivingSubHint">
+          <i class="fa-solid fa-turn-up" style="font-size:10px;"></i>
+          <span id="drivingSubText">ثم اتجه نحو ساحة كهرمانة</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lane Guidance Indicators (Google Maps / Waze) -->
+    <div class="lane-guidance-bar" id="laneGuidanceBar">
+      <div class="lane-box" id="lane0"><i class="fa-solid fa-arrow-up"></i></div>
+      <div class="lane-box" id="lane1"><i class="fa-solid fa-arrow-up"></i></div>
+      <div class="lane-box highlight" id="lane2"><i class="fa-solid fa-arrow-trend-up"></i></div>
+      <div class="lane-advice" id="laneAdvice">الزم المسار الأيمن</div>
+    </div>
+  </div>
+
+  <!-- Real-time Proximity Hazard Alert Banner -->
+  <div class="hazard-alert-banner liquid-glass" id="hazardAlertBanner" style="display:none;">
+    <div class="hazard-alert-icon" id="hazardAlertIcon"><i class="fa-solid fa-shield-halved"></i></div>
+    <div class="hazard-alert-content">
+      <strong id="hazardAlertTitle">سيطرة أمنية بعد 350 متر</strong>
+      <small id="hazardAlertSubtitle">خفف السرعة وكن على استعداد للتوقف</small>
+    </div>
+    <button class="hazard-dismiss-btn" onclick="dismissHazardAlert()"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+
+  <!-- Floating Speed & Compass Stack -->
+  <div class="driving-speed-stack" id="drivingSpeedStack" style="display:none;">
+    <div class="speed-meter-capsule liquid-glass" id="speedMeterCapsule">
+      <span class="speed-value" id="drivingSpeedValue">0</span>
+      <span class="speed-unit">كم/س</span>
+    </div>
+    <div class="speed-limit-badge" id="drivingSpeedLimit">60</div>
+  </div>
+
+  <!-- Bottom Driving Cockpit Bar -->
+  <div class="driving-cockpit-bottom liquid-glass" id="drivingCockpitBottom" style="display:none;">
+    <div class="cockpit-stats-row">
+      <div class="cockpit-eta-group">
+        <span class="cockpit-eta-label">الوصول</span>
+        <span class="cockpit-eta-time" id="cockpitEtaTime">--:--</span>
+      </div>
+      <div class="cockpit-divider"></div>
+      <div class="cockpit-stat-pill">
+        <i class="fa-solid fa-clock" style="color:var(--ios-green);"></i>
+        <span id="cockpitRemainingMin">-- دقيقة</span>
+      </div>
+      <div class="cockpit-stat-pill">
+        <i class="fa-solid fa-route" style="color:var(--ios-blue);"></i>
+        <span id="cockpitRemainingDist">-- كم</span>
+      </div>
+    </div>
+
+    <!-- Thumb-Accessible Driving Controls (Waze Inspired) -->
+    <div class="cockpit-actions-row">
+      <button class="cockpit-action-btn btn-mute" id="btnAudioToggle" onclick="toggleAudioMute()" title="كتم/تشغيل الصوت">
+        <i class="fa-solid fa-volume-high" id="audioIcon"></i>
+        <span>الصوت</span>
+      </button>
+
+      <button class="cockpit-action-btn btn-hazard-report" onclick="openQuickHazardSheet()" title="إبلاغ سريع عن خطر">
+        <i class="fa-solid fa-plus"></i>
+        <span>إبلاغ</span>
+      </button>
+
+      <button class="cockpit-action-btn btn-share-eta" onclick="shareTripEta()" title="مشاركة الوصول">
+        <i class="fa-solid fa-share-nodes"></i>
+        <span>مشاركة</span>
+      </button>
+
+      <button class="cockpit-action-btn btn-recenter-drive" onclick="recenterDrivingCamera()" title="توسيط الملاحة">
+        <i class="fa-solid fa-location-crosshairs"></i>
+        <span>توسيط</span>
+      </button>
+
+      <button class="cockpit-action-btn btn-stop-drive" onclick="stopNavigationDrive()" title="إنهاء الملاحة">
+        <i class="fa-solid fa-xmark"></i>
+        <span>إنهاء</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- One-Tap Quick Hazard Reporting Sheet (Accessible while driving) -->
+  <div class="apple-modal-overlay" id="quickHazardSheet">
+    <div class="apple-modal-sheet liquid-glass">
+      <div class="sheet-handle"></div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-weight:800; font-size:18px;"><i class="fa-solid fa-triangle-exclamation" style="color:var(--ios-orange);"></i> إبلاغ مباشر أثناء القيادة</h3>
+        <span style="font-size:11px; color:var(--ios-green); font-weight:700;">+50 نقطة كابتن</span>
+      </div>
+      <p style="font-size:12px; color:var(--ios-text-secondary); margin-bottom:14px;">انقر لتحديث الخارطة فوراً وحماية السائقين خلفك (يُحفظ للأبد):</p>
+
+      <div class="quick-hazard-grid">
+        <button class="quick-hazard-tile" onclick="quickReport('checkpoint', 'سيطرة أمنية')">
+          <i class="fa-solid fa-shield-halved" style="color:#007aff;"></i>
+          <span>سيطرة / تدقيق</span>
+        </button>
+        <button class="quick-hazard-tile" onclick="quickReport('speed_camera', 'كاميرا مراقبة')">
+          <i class="fa-solid fa-camera" style="color:#ff3b30;"></i>
+          <span>كاميرا سرعة</span>
+        </button>
+        <button class="quick-hazard-tile" onclick="quickReport('traffic_jam', 'ازدحام خانق')">
+          <i class="fa-solid fa-traffic-light" style="color:#ff9500;"></i>
+          <span>ازدحام مروري</span>
+        </button>
+        <button class="quick-hazard-tile" onclick="quickReport('accident', 'حادث سير')">
+          <i class="fa-solid fa-car-burst" style="color:#ff3b30;"></i>
+          <span>حادث سير</span>
+        </button>
+        <button class="quick-hazard-tile" onclick="quickReport('road_work', 'أعمال صيانة')">
+          <i class="fa-solid fa-person-digging" style="color:#ffaa00;"></i>
+          <span>حفريات وصيانة</span>
+        </button>
+        <button class="quick-hazard-tile" onclick="quickReport('pothole', 'عائق أو حفرة')">
+          <i class="fa-solid fa-triangle-exclamation" style="color:#ff9500;"></i>
+          <span>حفرة بالطريق</span>
+        </button>
+        <button class="quick-hazard-tile" onclick="quickReport('closure', 'طريق مقطوع')">
+          <i class="fa-solid fa-ban" style="color:#d70015;"></i>
+          <span>طريق مقطوع</span>
+        </button>
+        <button class="quick-hazard-tile" onclick="quickReport('fuel_update', 'توفر وقود')">
+          <i class="fa-solid fa-gas-pump" style="color:#34c759;"></i>
+          <span>طابور بنزين</span>
+        </button>
+      </div>
+
+      <button onclick="closeQuickHazardSheet()" style="width:100%; margin-top:14px; background:transparent; color:var(--ios-text); border:1px solid var(--ios-border); border-radius:14px; padding:12px; font-weight:700; cursor:pointer;">إلغاء</button>
+    </div>
+  </div>
+
+  <!-- Apple Navigation Driving HUD (Active Drive Mode) -->
+  <div class="apple-nav-hud" id="appleNavHud">
+    <div class="nav-arrow-badge">
+      <i class="fa-solid fa-arrow-turn-up" id="navManeuverIcon"></i>
+    </div>
+    <div class="nav-info-col">
+      <div class="nav-distance-text" id="hudDistance">بانتظار تحديد الموقع</div>
+      <div class="nav-street-text" id="hudInstruction">اختر وجهة لبدء الملاحة</div>
+    </div>
+  </div>
+
+  <!-- Apple Side Control Stack -->
+  <div class="apple-side-stack">
+    <div class="glass-control-group liquid-glass">
+      <button class="glass-control-btn" onclick="playHapticClick(); toggle3DView()" id="btn3D" title="3D / 2D">
+        <span style="font-weight: 800; font-size: 13px;" id="label3D">3D</span>
+      </button>
+      <button class="glass-control-btn" onclick="playHapticClick(); recenterLocation()" title="موقعي الحالي">
+        <i class="fa-solid fa-location-arrow" id="gpsIcon" style="color:var(--ios-text);"></i>
+      </button>
+      <button class="glass-control-btn" onclick="playHapticClick(); toggleDarkMode()" title="نهاري / ليلي">
+        <i class="fa-solid fa-moon" id="themeIcon"></i>
+      </button>
+      <button class="glass-control-btn" onclick="toggleLanguage()" id="langBtn" title="Language">
+        <span style="font-weight: 700; font-size: 12px;">EN</span>
+      </button>
+    </div>
+
+    <button class="btn-report-hazard" onclick="openReportModal()" title="إبلاغ مجتمعي عن عائق">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+    </button>
+  </div>
+
+  <!-- Apple Bottom Drawer Sheet -->
+  <div class="apple-bottom-drawer" id="appleDrawer">
+    <!-- State 1 & 2: Overview & Route Card -->
+    <div class="apple-sheet-card liquid-glass" id="bottomSheetCard">
+      <div class="sheet-handle" id="sheetHandle"></div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img src="/logo.jpg" alt="دلدل" style="width:26px; height:26px; border-radius:7px; object-fit:contain; border:1px solid var(--ios-border);">
+          <span style="font-weight:800; font-size:16px; color:var(--ios-text);">دلدل</span>
+          <span style="font-size:11px; color:var(--ios-green-dark); background:rgba(52,199,89,0.12); padding:2px 8px; border-radius:12px; font-weight:700;">الملاحة الذكية</span>
+        </div>
+      </div>
+
+      <!-- City Quick-Jump Chips (Idle State) -->
+      <div id="cityChipsContainer" style="display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none;">
+        <button class="category-chip active" onclick="playHapticClick(); jumpToCity('baghdad')">بغداد</button>
+        <button class="category-chip" onclick="playHapticClick(); jumpToCity('erbil')">أربيل</button>
+        <button class="category-chip" onclick="playHapticClick(); jumpToCity('basra')">البصرة</button>
+        <button class="category-chip" onclick="playHapticClick(); jumpToCity('najaf')">النجف</button>
+        <button class="category-chip" onclick="playHapticClick(); jumpToCity('karbala')">كربلاء</button>
+        <button class="category-chip" onclick="playHapticClick(); jumpToCity('mosul')">الموصل</button>
+      </div>
+
+      <div class="contribution-panel">
+        <label class="consent-label" for="trafficOptIn">
+          <input type="checkbox" id="trafficOptIn">
+          <span>ساهم بتحسين حركة الطرق ببيانات سرعة مجهولة</span>
+        </label>
+        <p class="consent-help">اختياري، أثناء الملاحة النشطة فقط. تُحوّل القراءة إلى خلية تقارب 1 كم؛ لا يُحفظ مسارك. لا تظهر الإشارة إلا بعد مساهمة 3 سائقين، وتُحذف بعد 24 ساعة.</p>
+      </div>
+
+      <!-- Route Details (Appears when destination is picked) -->
+      <div class="drawer-content-row">
+        <div>
+          <div class="eta-display" id="tripEta">--:--</div>
+          <div class="destination-subtext" id="tripDetails">انقر على الخريطة أو ابحث لتحديد وجهة</div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="apple-btn-preview" id="btnPreviewFly" onclick="startFlyThroughPreview()" style="display:none;">
+            <i class="fa-solid fa-video"></i> معاينة 3D
+          </button>
+          <button class="apple-btn-go" id="btnStartNav" onclick="startNavigationDrive()" style="display:none;">
+            <i class="fa-solid fa-location-arrow"></i> <span id="labelGo">انطلاق</span>
+          </button>
+        </div>
+      </div>
+      <div class="route-options" id="routeOptions" style="display:none;" aria-label="المسارات المتاحة"></div>
+      <div class="route-estimate" id="routeEstimate" style="display:none;" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <!-- State 3: Active Trip Status Capsule -->
+  <div class="apple-trip-capsule" id="tripActiveCapsule">
+    <div>
+      <div style="font-size:22px; font-weight:800; color:var(--ios-green);" id="capsuleEta">-- دقيقة</div>
+      <div style="font-size:12px; color:var(--ios-text-secondary);" id="capsuleArrival">وقت وصول تقريبي • -- كم</div>
+    </div>
+    <button class="apple-btn-close" onclick="stopNavigationDrive()" title="إنهاء الملاحة">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+
+  <!-- Baghdad Bridges Live Radar Modal -->
+  <div class="apple-modal-overlay" id="bridgesModal">
+    <div class="apple-modal-sheet liquid-glass" style="max-height:82vh; overflow-y:auto;">
+      <div class="sheet-handle" style="margin-bottom:12px;"></div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <div>
+          <h3 style="font-weight:800; font-size:20px;">مؤشرات الجسور من بيانات المجتمع</h3>
+          <p style="font-size:12px; color:var(--ios-text-secondary);">تظهر السرعة المرصودة عند توفر مساهمات كافية من السائقين</p>
+        </div>
+        <span class="bridge-status-pill">بيانات مجتمعية</span>
+      </div>
+
+      <div id="bridgesList" style="display:flex; flex-direction:column; gap:8px;"></div>
+
+      <button onclick="closeBridgesModal()" style="width:100%; margin-top:16px; background:var(--ios-bg); color:var(--ios-text); border:1px solid var(--ios-border); border-radius:14px; padding:12px; font-weight:700; cursor:pointer;">إغلاق</button>
+    </div>
+  </div>
+
+  <!-- Iraqi Dialect Voice Co-Pilot Selector Modal -->
+  <div class="apple-modal-overlay" id="dialectModal">
+    <div class="apple-modal-sheet">
+      <div class="sheet-handle" style="margin-bottom:12px;"></div>
+      <h3 style="font-weight:800; font-size:20px; margin-bottom:6px;">اختيار أسلوب التوجيه الصوتي</h3>
+      <p style="font-size:13px; color:var(--ios-text-secondary); margin-bottom:16px;">اختر نبرة التوجيه المفضلة أثناء القيادة في شوارع العراق:</p>
+
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <label class="bridge-card" style="cursor:pointer;">
+          <div>
+            <div style="font-weight:700; font-size:15px;"><i class="fa-solid fa-location-dot" style="color:var(--ios-green); margin-left:6px;"></i> اللهجة العراقية البغدادية (موصى بها)</div>
+            <div style="font-size:12px; color:var(--ios-text-secondary);">"ورا 300 متر لوف يمنة"، "دير بالك ازدحام كدامك"، "وصلت بالسلامة يا غالي"</div>
+          </div>
+          <input type="radio" name="dialectChoice" value="iraqi" checked style="accent-color:var(--ios-blue); width:18px; height:18px;">
+        </label>
+
+        <label class="bridge-card" style="cursor:pointer;">
+          <div>
+            <div style="font-weight:700; font-size:15px;"><i class="fa-solid fa-earth-americas" style="color:var(--ios-blue); margin-left:6px;"></i> اللغة العربية الفصحى</div>
+            <div style="font-size:12px; color:var(--ios-text-secondary);">"بعد ثلاثمائة متر انعطف يميناً"، "تابع حتى الوجهة"</div>
+          </div>
+          <input type="radio" name="dialectChoice" value="fusha" style="accent-color:var(--ios-blue); width:18px; height:18px;">
+        </label>
+
+        <label class="bridge-card" style="cursor:pointer;">
+          <div>
+            <div style="font-weight:700; font-size:15px;"><i class="fa-solid fa-language" style="color:var(--ios-orange); margin-left:6px;"></i> English</div>
+            <div style="font-size:12px; color:var(--ios-text-secondary);">"In 300 meters, turn right", "You have arrived"</div>
+          </div>
+          <input type="radio" name="dialectChoice" value="english" style="accent-color:var(--ios-blue); width:18px; height:18px;">
+        </label>
+      </div>
+
+      <button onclick="saveDialectChoice()" style="width:100%; margin-top:18px; background:var(--ios-green); color:#fff; border:none; border-radius:14px; padding:12px; font-weight:700; cursor:pointer;">حفظ وتجربة الصوت</button>
+    </div>
+  </div>
+
+  <!-- Incident Reporting Modal -->
+  <div class="apple-modal-overlay" id="reportModal">
+    <div class="apple-modal-sheet">
+      <div class="sheet-handle" style="margin-bottom:12px;"></div>
+      <h3 style="font-weight:800; font-size:18px; margin-bottom:10px;">إبلاغ مجتمعي عن عائق طريق</h3>
+
+      <label style="font-size:12px; color:var(--ios-text-secondary); font-weight:600;">نوع البلاغ</label>
+      <select id="reportType" class="apple-input">
+        <option value="accident">حادث سير (Accident)</option>
+        <option value="traffic_jam">ازدحام مروري خانق (Traffic Jam)</option>
+        <option value="road_work">أعمال صيانة وإكساء (Roadwork)</option>
+        <option value="hazard">عائق أو حفرة في الطريق (Hazard)</option>
+        <option value="closure">قطع مسار أو شارع (Closure)</option>
+      </select>
+
+      <label style="font-size:12px; color:var(--ios-text-secondary); font-weight:600; margin-top:10px; display:block;">ملاحظة موجزة</label>
+      <input type="text" id="reportTitle" class="apple-input" maxlength="80" placeholder="مثال: حادث سير عند مدخل الجادرية">
+
+      <div style="display:flex; gap:10px; margin-top:18px;">
+        <button onclick="submitReport()" style="flex:1; background:var(--ios-green); color:#fff; border:none; border-radius:14px; padding:12px; font-weight:700; cursor:pointer;">إرسال البلاغ</button>
+        <button onclick="closeReportModal()" style="background:var(--ios-bg); color:var(--ios-text); border:1px solid var(--ios-border); border-radius:14px; padding:12px 18px; font-weight:700; cursor:pointer;">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Turf.js for Advanced Spatial Math & Off-Route Detection -->
+  <script src="https://unpkg.com/@turf/turf@7.2.0/turf.min.js"></script>
+  <!-- MapLibre GL JS -->
+  <script src="https://unpkg.com/maplibre-gl@4.1.0/dist/maplibre-gl.js"></script>
+
+  <script>
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+      }[tag] || tag));
+    }
+
+    // Major Iraqi Cities Coordinates
+    const IRAQ_CITIES = {
+      baghdad: { center: [44.3661, 33.3152], zoom: 14.0 },
+      erbil: { center: [44.0092, 36.1901], zoom: 13.5 },
+      basra: { center: [47.7835, 30.5081], zoom: 13.5 },
+      najaf: { center: [44.3268, 32.0006], zoom: 14.0 },
+      karbala: { center: [44.0245, 32.6160], zoom: 14.0 },
+      mosul: { center: [43.1189, 36.3350], zoom: 13.5 }
+    };
+
+    // State
+    let map = null;
+    let userCoords = null;
+    let locationAccuracyMeters = null;
+    let navigationStepIndex = 0;
+    let availableRoutes = [];
+    let contributionSessionId = "";
+    let lastTrafficSampleAt = 0;
+    let trafficSocket = null;
+    let destinationCoords = null;
+    let destinationName = '';
+    let is3DView = false;
+    let isDrivingActive = false;
+    let isFlyPreviewActive = false;
+    let vehicleMarker = null;
+
+    // ---------------- 60 FPS Fluid GPS Motion & Haptic Physics ---------------- //
+    function playHapticClick() {
+      if (isAudioMuted) return;
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1300, now);
+        osc.frequency.exponentialRampToValueAtTime(350, now + 0.014);
+        gain.gain.setValueAtTime(0.06, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.014);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.014);
+      } catch (e) {}
+    }
+
+    class SmoothGpsTracker {
+      constructor() {
+        this.currentLng = 44.3661;
+        this.currentLat = 33.3152;
+        this.targetLng = 44.3661;
+        this.targetLat = 33.3152;
+        this.currentBearing = 0;
+        this.targetBearing = 0;
+        this.isInitialized = false;
+        this.rafId = null;
+        this.startLoop();
+      }
+
+      setTarget(lng, lat, bearing) {
+        this.targetLng = lng;
+        this.targetLat = lat;
+        if (bearing !== undefined && Number.isFinite(bearing)) {
+          this.targetBearing = bearing;
+        }
+        if (!this.isInitialized) {
+          this.currentLng = lng;
+          this.currentLat = lat;
+          this.currentBearing = this.targetBearing;
+          this.isInitialized = true;
+        }
+      }
+
+      startLoop() {
+        const step = () => {
+          // Smooth Lerp at 60 FPS (damping factor 0.1 for liquid motion)
+          this.currentLng += (this.targetLng - this.currentLng) * 0.1;
+          this.currentLat += (this.targetLat - this.currentLat) * 0.1;
+
+          // Shortest Angular Interpolation for compass
+          let diff = (this.targetBearing - this.currentBearing + 180) % 360 - 180;
+          if (diff < -180) diff += 360;
+          this.currentBearing += diff * 0.1;
+
+          if (vehicleMarker) {
+            vehicleMarker.setLngLat([this.currentLng, this.currentLat]);
+            vehicleMarker.setRotation(this.currentBearing);
+            if (!vehicleMarker._map && map) vehicleMarker.addTo(map);
+          }
+
+          if (isDrivingActive && !isFlyPreviewActive && map) {
+            map.setCenter([this.currentLng, this.currentLat]);
+            map.setBearing(this.currentBearing);
+          }
+
+          this.rafId = requestAnimationFrame(step);
+        };
+        this.rafId = requestAnimationFrame(step);
+      }
+    }
+
+    const smoothTracker = new SmoothGpsTracker();
+
+    let currentPrimaryRoute = null;
+    let gpsWatchId = null;
+    let offRouteCount = 0;
+    let currentLang = 'ar';
+    let chosenDialect = 'iraqi';
+    let offlineDb = null;
+    let incidentMarkers = new Map();
+    let isDarkTheme = false;
+
+    // Web Audio Chime Generator
+    function playTurnChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(880.00, audioCtx.currentTime + 0.08); // A5
+
+        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+
+        osc1.connect(gainNode);
+        osc2.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        osc1.start();
+        osc2.start(audioCtx.currentTime + 0.08);
+        osc1.stop(audioCtx.currentTime + 0.35);
+        osc2.stop(audioCtx.currentTime + 0.35);
+      } catch (e) {}
+    }
+
+    function addCommunityTrafficLayer() {
+      if (!map.getSource('community-traffic')) {
+        map.addSource('community-traffic', {
+          type: 'geojson',
+          data: { type: 'FeatureCollection', features: [] }
+        });
+        map.addLayer({
+          id: 'community-traffic-cells',
+          type: 'circle',
+          source: 'community-traffic',
+          paint: {
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 5, 16, 12],
+            'circle-color': ['step', ['get', 'medianSpeedKmh'], '#c74435', 15, '#d49b42', 30, '#137b68'],
+            'circle-opacity': 0.72,
+            'circle-stroke-color': '#ffffff',
+            'circle-stroke-width': 1.5
+          }
+        });
+      }
+    }
+
+    // Map Initialization with CARTO Voyager (Rich Daylight Color)
+    function initMap() {
+      if (typeof maplibregl !== 'undefined' && maplibregl.getRTLTextPluginStatus && maplibregl.getRTLTextPluginStatus() === 'unavailable') {
+        try {
+          maplibregl.setRTLTextPlugin(
+            'https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.min.js',
+            null,
+            true
+          );
+        } catch (e) {}
+      }
+
+      map = new maplibregl.Map({
+        container: 'map',
+        style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+        center: [44.3661, 33.3152], // Baghdad Core
+        zoom: 14.0,
+        pitch: is3DView ? 48 : 0,
+        bearing: 0,
+        attributionControl: false
+      });
+
+      map.on('load', () => {
+        // Real OpenStreetMap 3D Building Extrusions
+        try {
+          const styleSources = map.getStyle().sources || {};
+          const vectorSourceId = Object.keys(styleSources).find(id => styleSources[id].type === 'vector');
+
+          if (vectorSourceId) {
+            map.addLayer({
+              id: 'osm-3d-buildings',
+              source: vectorSourceId,
+              'source-layer': vectorSourceId === 'protomaps' ? 'buildings' : 'building',
+              type: 'fill-extrusion',
+              minzoom: 14,
+              paint: {
+                'fill-extrusion-color': isDarkTheme ? '#1e293b' : '#e2e8f0',
+                'fill-extrusion-height': [
+                  'coalesce',
+                  ['get', 'render_height'],
+                  ['get', 'height'],
+                  12
+                ],
+                'fill-extrusion-base': [
+                  'coalesce',
+                  ['get', 'render_min_height'],
+                  ['get', 'min_height'],
+                  0
+                ],
+                'fill-extrusion-opacity': 0.72
+              }
+            });
+          }
+        } catch (err) {}
+
+        // Vehicle Puck Marker
+        const el = document.createElement('div');
+        el.className = 'vehicle-puck';
+        el.innerHTML = '<i class="fa-solid fa-location-arrow"></i>';
+        vehicleMarker = new maplibregl.Marker({ element: el, rotationAlignment: 'map' });
+
+        addCommunityTrafficLayer();
+        map.on('click', 'community-traffic-cells', showTrafficSignalPopup);
+        map.on('mouseenter', 'community-traffic-cells', () => { map.getCanvas().style.cursor = 'pointer'; });
+        map.on('mouseleave', 'community-traffic-cells', () => { map.getCanvas().style.cursor = ''; });
+
+        // Route GeoJSON Layers
+        map.addSource('route-path', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+
+        map.addLayer({
+          id: 'route-glow',
+          type: 'line',
+          source: 'route-path',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: { 'line-color': '#007aff', 'line-width': 14, 'line-opacity': 0.38, 'line-blur': 3 }
+        });
+
+        map.addLayer({
+          id: 'route-core',
+          type: 'line',
+          source: 'route-path',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: { 'line-color': '#007aff', 'line-width': 7 }
+        });
+
+        loadIncidents();
+        loadTrafficSignals();
+        connectIncidentFeed();
+        startGpsTracking();
+        setInterval(loadTrafficSignals, 30000);
+      });
+
+      map.on('click', (e) => {
+        if (isDrivingActive || isFlyPreviewActive) return;
+        calculateRouteTo(e.lngLat.lng, e.lngLat.lat, currentLang === 'en' ? 'Selected Location' : 'نقطة على الخريطة');
+      });
+    }
+
+    // Toggle Day / Night Mode
+    function toggleDarkMode() {
+      isDarkTheme = !isDarkTheme;
+      document.body.classList.toggle('dark-mode', isDarkTheme);
+      document.getElementById('themeIcon').className = isDarkTheme ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+
+      const nextStyle = isDarkTheme
+        ? 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+        : 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json';
+
+      map.setStyle(nextStyle);
+      map.once('style.load', () => {
+        addCommunityTrafficLayer();
+        loadTrafficSignals();
+        // Re-attach route layers
+        if (!map.getSource('route-path')) {
+          map.addSource('route-path', { type: 'geojson', data: currentPrimaryRoute ? currentPrimaryRoute.geometry : { type: 'FeatureCollection', features: [] } });
+          map.addLayer({ id: 'route-glow', type: 'line', source: 'route-path', paint: { 'line-color': '#007aff', 'line-width': 13, 'line-opacity': 0.35 } });
+          map.addLayer({ id: 'route-core', type: 'line', source: 'route-path', paint: { 'line-color': '#007aff', 'line-width': 6.5 } });
+        }
+      });
+    }
+
+    // Toggle 2D / 3D Mode
+    function toggle3DView() {
+      is3DView = !is3DView;
+      const label = document.getElementById('label3D');
+
+      if (is3DView) {
+        map.easeTo({ pitch: 50, duration: 800 });
+        if (map.getLayer('osm-3d-buildings')) {
+          map.setLayoutProperty('osm-3d-buildings', 'visibility', 'visible');
+        }
+        label.innerText = '3D';
+      } else {
+        map.easeTo({ pitch: 0, duration: 800 });
+        if (map.getLayer('osm-3d-buildings')) {
+          map.setLayoutProperty('osm-3d-buildings', 'visibility', 'none');
+        }
+        label.innerText = '2D';
+      }
+    }
+
+    // Location and route flow
+    function showToast(message, duration = 3800) {
+      const toast = document.getElementById('statusToast');
+      toast.textContent = message;
+      toast.classList.add('visible');
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove('visible'), duration);
+    }
+
+    function getContributionSessionId() {
+      try {
+        let value = sessionStorage.getItem('masar-session-id');
+        if (!value) {
+          value = globalThis.crypto && crypto.randomUUID
+            ? crypto.randomUUID()
+            : 'session-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+          sessionStorage.setItem('masar-session-id', value);
+        }
+        return value;
+      } catch (err) {
+        return 'session-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+      }
+    }
+
+    function initTrafficConsent() {
+      contributionSessionId = getContributionSessionId();
+      const checkbox = document.getElementById('trafficOptIn');
+      try {
+        checkbox.checked = localStorage.getItem('masar-traffic-opt-in') === 'true';
+      } catch (err) {
+        checkbox.checked = false;
+      }
+      checkbox.addEventListener('change', () => {
+        try {
+          localStorage.setItem('masar-traffic-opt-in', checkbox.checked ? 'true' : 'false');
+        } catch (err) {}
+        showToast(checkbox.checked
+          ? 'ستُشارك قراءات السرعة أثناء الملاحة النشطة فقط.'
+          : 'تم إيقاف مشاركة بيانات السرعة.');
+      });
+    }
+
+    function updateLocationStatus(message) {
+      const label = document.getElementById('locationStatus');
+      if (!label) return;
+      if (message) label.textContent = message;
+      else if (locationAccuracyMeters !== null) label.textContent = 'GPS ±' + Math.round(locationAccuracyMeters) + ' م';
+      else label.textContent = 'بانتظار GPS';
+    }
+
+    async function shareTrafficSample(position) {
+      const checkbox = document.getElementById('trafficOptIn');
+      if (!isDrivingActive || !checkbox.checked) return;
+      const now = Date.now();
+      if (now - lastTrafficSampleAt < 30000) return;
+      if (position.coords.speed === null || !Number.isFinite(position.coords.speed)) return;
+      if (position.coords.accuracy > 35) return;
+
+      lastTrafficSampleAt = now;
+      try {
+        const response = await fetch('/api/telemetry/ping', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId: contributionSessionId,
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            speedKmh: Math.round(position.coords.speed * 3.6),
+            accuracyMeters: position.coords.accuracy,
+            consentGiven: true
+          })
+        });
+        if (!response.ok) showToast('تعذر إرسال قراءة السرعة؛ تستمر الملاحة دون مشاركة.');
+      } catch (err) {}
+    }
+
+    function startGpsTracking() {
+      if (!('geolocation' in navigator)) {
+        updateLocationStatus('GPS غير متاح');
+        return;
+      }
+      gpsWatchId = navigator.geolocation.watchPosition(
+        position => {
+          userCoords = [position.coords.longitude, position.coords.latitude];
+          locationAccuracyMeters = position.coords.accuracy;
+          const heading = Number.isFinite(position.coords.heading) ? position.coords.heading : 0;
+          const speed = position.coords.speed;
+          document.getElementById('liveSpeedText').innerText = speed === null
+            ? '--'
+            : Math.round(speed * 3.6);
+          if (vehicleMarker) {
+            vehicleMarker.setLngLat(userCoords);
+            vehicleMarker.setRotation(heading);
+            if (!vehicleMarker._map) vehicleMarker.addTo(map);
+          }
+          updateLocationStatus();
+          document.getElementById('gpsIcon').style.color = 'var(--ios-green)';
+          if (isDrivingActive && !isFlyPreviewActive) {
+            handleNavigationStep(userCoords, heading);
+            updateTripStats(userCoords);
+            shareTrafficSample(position);
+          }
+        },
+        error => {
+          if (!userCoords) updateLocationStatus(error.code === 1 ? 'إذن الموقع مرفوض' : 'تعذر تثبيت GPS');
+        },
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+      );
+    }
+
+    function recenterLocation() {
+      if (!userCoords) {
+        showToast('اسمح بالوصول إلى الموقع حتى نحدد نقطة البداية بدقة.');
+        return;
+      }
+      map.flyTo({ center: userCoords, zoom: 16.5, duration: 900 });
+    }
+
+    async function calculateRouteTo(destLng, destLat, name) {
+      if (!userCoords || locationAccuracyMeters > 60) {
+        showToast('نحتاج إلى تثبيت موقع GPS بدقة مناسبة قبل حساب المسار.');
+        return;
+      }
+      destinationCoords = [destLng, destLat];
+      destinationName = name;
+      currentPrimaryRoute = null;
+      availableRoutes = [];
+      document.getElementById('btnStartNav').style.display = 'none';
+      document.getElementById('btnPreviewFly').style.display = 'none';
+      document.getElementById('routeOptions').style.display = 'none';
+      document.getElementById('routeEstimate').style.display = 'none';
+      map.getSource('route-path').setData({ type: 'FeatureCollection', features: [] });
+      document.getElementById('tripEta').innerText = 'جارٍ الحساب';
+      document.getElementById('tripDetails').innerText = name;
+
+      try {
+        const start = userCoords[1] + ',' + userCoords[0];
+        const end = destLat + ',' + destLng;
+        const response = await fetch('/api/route?start=' + start + '&end=' + end + '&lang=' + currentLang);
+        const data = await response.json();
+        if (!response.ok || data.status !== 'ok' || !Array.isArray(data.routes) || !data.routes.length) {
+          throw new Error(data.message || 'تعذر إيجاد مسار متاح.');
+        }
+        availableRoutes = data.routes;
+        renderRouteChoices();
+        selectRoute(0, true);
+        document.getElementById('btnPreviewFly').style.display = 'inline-flex';
+      } catch (err) {
+        document.getElementById('tripEta').innerText = '--';
+        document.getElementById('tripDetails').innerText = 'لم يُحسب المسار';
+        showToast(err.message || 'تعذر الاتصال بمحرك المسارات.');
+      }
+    }
+
+    function renderRouteChoices() {
+      const container = document.getElementById('routeOptions');
+      container.replaceChildren();
+      availableRoutes.forEach((route, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'route-option' + (index === 0 ? ' active' : '');
+        button.setAttribute('aria-pressed', index === 0 ? 'true' : 'false');
+        const title = document.createElement('strong');
+        title.textContent = route.communityTraffic && route.communityTraffic.applied
+          ? 'تقدير مجتمعي'
+          : (index === 0 ? 'المسار المقترح' : 'مسار بديل');
+        const detail = document.createElement('span');
+        detail.textContent = route.durationMin + ' د • ' + route.distanceKm + ' كم';
+        button.append(title, detail);
+        button.addEventListener('click', () => selectRoute(index, true));
+        container.appendChild(button);
+      });
+      container.style.display = availableRoutes.length > 1 ? 'flex' : 'none';
+    }
+
+    
+    let altRouteMarkers = [];
+
+    function clearAlternativeRouteMarkers() {
+      altRouteMarkers.forEach(m => m.remove());
+      altRouteMarkers = [];
+    }
+
+    function renderAlternativeRouteLines() {
+      clearAlternativeRouteMarkers();
+      if (!map.getSource('route-alt-path')) return;
+
+      if (!availableRoutes || availableRoutes.length <= 1) {
+        map.getSource('route-alt-path').setData({ type: 'FeatureCollection', features: [] });
+        return;
+      }
+
+      const altFeatures = [];
+      const primaryDuration = currentPrimaryRoute ? currentPrimaryRoute.durationMin : availableRoutes[0].durationMin;
+
+      availableRoutes.forEach((route, idx) => {
+        if (route === currentPrimaryRoute) return;
+        altFeatures.push({
+          type: 'Feature',
+          geometry: route.geometry,
+          properties: { index: idx }
+        });
+
+        // Add on-map Liquid Glass badge at route midpoint
+        if (route.geometry && route.geometry.coordinates && route.geometry.coordinates.length > 5) {
+          const midIdx = Math.floor(route.geometry.coordinates.length * 0.45);
+          const midPt = route.geometry.coordinates[midIdx];
+          const diffMin = route.durationMin - primaryDuration;
+          const diffText = diffMin > 0 ? ('+' + diffMin + ' د') : (diffMin < 0 ? (diffMin + ' د') : 'نفس الوقت');
+
+          const el = document.createElement('div');
+          el.className = 'alt-route-pill liquid-glass';
+          el.innerHTML = '<i class="fa-solid fa-route" style="margin-left:4px;"></i> ' + diffText;
+          el.onclick = (e) => {
+            e.stopPropagation();
+            selectRoute(idx, true);
+          };
+
+          const m = new maplibregl.Marker({ element: el }).setLngLat(midPt).addTo(map);
+          altRouteMarkers.push(m);
+        }
+      });
+
+      map.getSource('route-alt-path').setData({
+        type: 'FeatureCollection',
+        features: altFeatures
+      });
+    }
+
+    function selectRoute(index, fitBounds) {
+      const route = availableRoutes[index];
+      if (!route) return;
+      currentPrimaryRoute = route;
+      navigationStepIndex = 0;
+      map.getSource('route-path').setData(route.geometry);
+      renderAlternativeRouteLines();
+      document.getElementById('tripEta').innerText = '~' + route.durationMin + ' دقيقة';
+      document.getElementById('tripDetails').innerText = destinationName + ' • ' + route.distanceKm + ' كم';
+      document.getElementById('btnStartNav').style.display = 'inline-flex';
+
+      const note = document.getElementById('routeEstimate');
+      if (route.communityTraffic && route.communityTraffic.applied) {
+        note.textContent = 'تقدير مجتمعي تقريبي • تغطية ' + route.communityTraffic.coveragePct
+          + '% • ' + route.communityTraffic.contributors + '+ سائقين في الخلايا المرصودة';
+      } else if (route.dominantCongestion && route.dominantCongestion !== 'unavailable') {
+        note.textContent = 'يشمل بيانات حركة مرور من مزود التوجيه.';
+      } else {
+        note.textContent = 'وقت تقريبي حسب شبكة الطرق؛ لا تتوفر بيانات سرعة مجتمعية كافية لهذا المسار.';
+      }
+      note.style.display = 'block';
+      document.querySelectorAll('.route-option').forEach((button, buttonIndex) => {
+        button.classList.toggle('active', buttonIndex === index);
+        button.setAttribute('aria-pressed', buttonIndex === index ? 'true' : 'false');
+      });
+      if (fitBounds && userCoords) {
+        map.fitBounds([
+          [Math.min(userCoords[0], destinationCoords[0]), Math.min(userCoords[1], destinationCoords[1])],
+          [Math.max(userCoords[0], destinationCoords[0]), Math.max(userCoords[1], destinationCoords[1])]
+        ], { padding: { top: 90, bottom: 260, left: 60, right: 60 } });
+      }
+    }
+
+    async function startFlyThroughPreview() {
+      if (!currentPrimaryRoute || !currentPrimaryRoute.geometry) return;
+      isFlyPreviewActive = true;
+      const coords = currentPrimaryRoute.geometry.coordinates;
+      document.getElementById('btnPreviewFly').innerHTML = '<i class="fa-solid fa-pause"></i> إيقاف المعاينة';
+      document.getElementById('btnPreviewFly').onclick = stopFlyThroughPreview;
+      for (let i = 0; i < coords.length; i += Math.max(1, Math.floor(coords.length / 25))) {
+        if (!isFlyPreviewActive) break;
+        const point = coords[i];
+        const nextPoint = coords[Math.min(i + 2, coords.length - 1)];
+        const bearing = turf.bearing(turf.point(point), turf.point(nextPoint));
+        map.easeTo({ center: point, zoom: 16.8, pitch: 55, bearing, duration: 700 });
+        await new Promise(resolve => setTimeout(resolve, 700));
+      }
+      stopFlyThroughPreview();
+    }
+
+    function stopFlyThroughPreview() {
+      isFlyPreviewActive = false;
+      const button = document.getElementById('btnPreviewFly');
+      button.innerHTML = '<i class="fa-solid fa-video"></i> معاينة 3D';
+      button.onclick = startFlyThroughPreview;
+    }
+
+    
+    // ---------------- High-Fidelity Direction Audio Engine (Apple / Waze) ---------------- //
+    let audioCtx = null;
+    let isAudioMuted = false;
+    let userDriverPoints = 0;
+    let driverRank = 'مبتدئ دلدل';
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    // Dual-Tone Harmonic Bell Chime (Apple Maps style 880Hz -> 1175Hz)
+    function playManeuverChime() {
+      if (isAudioMuted) return;
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(880, now);
+        osc1.frequency.exponentialRampToValueAtTime(1175, now + 0.12);
+
+        gain1.gain.setValueAtTime(0, now);
+        gain1.gain.linearRampToValueAtTime(0.28, now + 0.02);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.45);
+
+        // Subtle upper harmonic shimmer
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(1760, now + 0.03);
+        gain2.gain.setValueAtTime(0.06, now + 0.03);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.03);
+        osc2.stop(now + 0.35);
+      } catch (e) {}
+    }
+
+    // Hazard Caution Chime (Pulsed warning tones 660Hz -> 550Hz)
+    function playHazardCautionTone() {
+      if (isAudioMuted) return;
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        [0, 0.16].forEach(offset => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(660, now + offset);
+          osc.frequency.linearRampToValueAtTime(550, now + offset + 0.12);
+          gain.gain.setValueAtTime(0.22, now + offset);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.14);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + offset);
+          osc.stop(now + offset + 0.14);
+        });
+      } catch (e) {}
+    }
+
+    // Arrival Major Triad Fanfare (C5 - E5 - G5)
+    function playArrivalFanfare() {
+      if (isAudioMuted) return;
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+          gain.gain.setValueAtTime(0.18, now + idx * 0.09);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.45);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + idx * 0.09);
+          osc.stop(now + idx * 0.09 + 0.45);
+        });
+      } catch (e) {}
+    }
+
+    function toggleAudioMute() {
+      isAudioMuted = !isAudioMuted;
+      const icon = document.getElementById('audioIcon');
+      if (icon) {
+        icon.className = isAudioMuted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
+        icon.style.color = isAudioMuted ? 'var(--ios-red)' : 'var(--ios-text)';
+      }
+      showToast(isAudioMuted ? 'تم كتم التوجيه الصوتي' : 'تم تفعيل التوجيه الصوتي');
+    }
+
+    function shareTripEta() {
+      const eta = document.getElementById('cockpitEtaTime').innerText || 'قريباً';
+      const text = `أنا في طريقي عبر تطبيق دلدل للملاحة. موعد الوصول التقديري: ${eta}.`;
+      if (navigator.share) {
+        navigator.share({ title: 'دلدل - مشاركة الوصول', text });
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+        showToast('تم نسخ وقت الوصول إلى الحافظة');
+      } else {
+        showToast('موعد الوصول: ' + eta);
+      }
+    }
+
+    function recenterDrivingCamera() {
+      if (!userCoords || !map) return;
+      map.easeTo({
+        center: userCoords,
+        zoom: 17.5,
+        pitch: 62,
+        bearing: currentHeading || 0,
+        duration: 800
+      });
+      showToast('تمت إعادة توسيط الكاميرا');
+    }
+
+    function openQuickHazardSheet() {
+      document.getElementById('quickHazardSheet').style.display = 'flex';
+    }
+
+    function closeQuickHazardSheet() {
+      document.getElementById('quickHazardSheet').style.display = 'none';
+    }
+
+    async function quickReport(type, label) {
+      closeQuickHazardSheet();
+      playManeuverChime();
+      showToast('تم إرسال بلاغ ' + label + ' - شكراً لمساهمتك!');
+
+      const sid = 'driver-' + (localStorage.getItem('duldul_session_id') || Math.random().toString(36).substring(2, 10));
+      localStorage.setItem('duldul_session_id', sid);
+
+      try {
+        await fetch('/api/incidents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type,
+            name_ar: label + ' (بلاغ قيادة مباشر)',
+            lat: userCoords ? userCoords[1] : 33.3152,
+            lng: userCoords ? userCoords[0] : 44.3661,
+            city: 'العراق',
+            sessionId: sid
+          })
+        });
+
+        // Award driver points permanently
+        const res = await fetch('/api/user/contribute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId: sid,
+            pointsEarned: 50,
+            actionType: 'report',
+            details: { type, label }
+          })
+        });
+        const data = await res.json();
+        if (data && data.profile) {
+          userDriverPoints = data.profile.points;
+          driverRank = data.profile.level;
+        }
+      } catch (e) {}
+    }
+
+    function dismissHazardAlert() {
+      document.getElementById('hazardAlertBanner').style.display = 'none';
+    }
+
+    
+    
+    // ---------------- Natural Studio Voice Audio Player (Arabic & Iraqi Dialect) ---------------- //
+    const STUDIO_CLIPS = {
+      iraqi: {
+        turn_right: '/audio/iraqi_turn_right.mp3',
+        turn_left: '/audio/iraqi_turn_left.mp3',
+        turn_right_now: '/audio/iraqi_turn_right_now.mp3',
+        turn_left_now: '/audio/iraqi_turn_left_now.mp3',
+        continue: '/audio/iraqi_continue.mp3',
+        arrive: '/audio/iraqi_arrived.mp3',
+        checkpoint: '/audio/iraqi_checkpoint.mp3',
+        camera: '/audio/iraqi_camera.mp3',
+        traffic: '/audio/iraqi_traffic.mp3',
+        recalculating: '/audio/iraqi_recalculating.mp3'
+      },
+      fusha: {
+        turn_right: '/audio/turn_right_200.mp3',
+        turn_left: '/audio/turn_left_200.mp3',
+        turn_right_now: '/audio/turn_right_now.mp3',
+        turn_left_now: '/audio/turn_left_now.mp3',
+        continue: '/audio/continue_straight.mp3',
+        arrive: '/audio/arrived.mp3',
+        checkpoint: '/audio/checkpoint_ahead.mp3',
+        camera: '/audio/speed_camera_ahead.mp3',
+        traffic: '/audio/traffic_ahead.mp3',
+        recalculating: '/audio/recalculating.mp3'
+      }
+    };
+
+    let activeStudioAudio = null;
+
+    function playStudioVoice(clipKey) {
+      if (isAudioMuted) return;
+      const dialect = chosenDialect === 'iraqi' ? 'iraqi' : 'fusha';
+      const fileUrl = (STUDIO_CLIPS[dialect] && STUDIO_CLIPS[dialect][clipKey]) || STUDIO_CLIPS.fusha[clipKey];
+      if (!fileUrl) return;
+
+      if (activeStudioAudio) {
+        try { activeStudioAudio.pause(); } catch (e) {}
+      }
+
+      playManeuverChime(); // Play crisp harmonic bell chime first
+
+      setTimeout(() => {
+        activeStudioAudio = new Audio(fileUrl);
+        activeStudioAudio.play().catch(() => {
+          speakNativeFallback(clipKey);
+        });
+      }, 200);
+    }
+
+    function speakNativeFallback(clipKey) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      let text = 'انعطف للأمام';
+      if (clipKey.includes('right')) text = 'انعطف يميناً';
+      else if (clipKey.includes('left')) text = 'انعطف يساراً';
+      else if (clipKey === 'arrive') text = 'وصلت إلى وجهتك بالسلامة';
+
+      const u = new SpeechSynthesisUtterance(text);
+      const voices = window.speechSynthesis.getVoices();
+      const arVoice = voices.find(v => v.lang.startsWith('ar'));
+      if (arVoice) u.voice = arVoice;
+      u.lang = 'ar-SA';
+      window.speechSynthesis.speak(u);
+    }
+
+    function updateCockpitArrivalMetrics(durationMin, distanceKm) {
+      const now = new Date();
+      const dur = Number(durationMin) || 15;
+      now.setMinutes(now.getMinutes() + dur);
+      const hours = String(now.getHours()).padStart(2, '0');
+      const mins = String(now.getMinutes()).padStart(2, '0');
+
+      const etaEl = document.getElementById('cockpitEtaTime');
+      if (etaEl) etaEl.innerText = hours + ':' + mins;
+
+      const minEl = document.getElementById('cockpitRemainingMin');
+      if (minEl) minEl.innerText = dur + ' دقيقة';
+
+      const distEl = document.getElementById('cockpitRemainingDist');
+      if (distEl) distEl.innerText = (distanceKm || 10) + ' كم';
+    }
+
+    function updateCockpitManeuver(step, nextStep) {
+      if (!step) return;
+      const distEl = document.getElementById('drivingDistance');
+      const streetEl = document.getElementById('drivingStreet');
+      const iconEl = document.getElementById('drivingManeuverIcon');
+      const subTextEl = document.getElementById('drivingSubText');
+
+      const distM = step.distanceMeters || 300;
+      if (distEl) distEl.innerText = 'في ' + distM + ' م';
+      if (streetEl) streetEl.innerText = step.instruction || 'انطلق نحو الوجهة';
+      if (subTextEl && nextStep) {
+        subTextEl.innerText = 'ثم: ' + nextStep.instruction;
+      }
+
+      const inst = (step.instruction || '').toLowerCase();
+      if (inst.includes('يمين') || inst.includes('right')) {
+        if (iconEl) iconEl.className = 'fa-solid fa-arrow-turn-up';
+        updateLaneBoxes('right');
+      } else if (inst.includes('يسار') || inst.includes('left')) {
+        if (iconEl) iconEl.className = 'fa-solid fa-arrow-turn-down';
+        updateLaneBoxes('left');
+      } else if (inst.includes('دوران') || inst.includes('u-turn')) {
+        if (iconEl) iconEl.className = 'fa-solid fa-rotate-left';
+        updateLaneBoxes('left');
+      } else {
+        if (iconEl) iconEl.className = 'fa-solid fa-arrow-up';
+        updateLaneBoxes('center');
+      }
+    }
+
+    function updateLaneBoxes(dir) {
+      const l0 = document.getElementById('lane0');
+      const l1 = document.getElementById('lane1');
+      const l2 = document.getElementById('lane2');
+      const advice = document.getElementById('laneAdvice');
+
+      if (!l0 || !l1 || !l2) return;
+      l0.className = 'lane-box';
+      l1.className = 'lane-box';
+      l2.className = 'lane-box';
+
+      if (dir === 'right') {
+        l2.className = 'lane-box highlight';
+        if (advice) advice.innerText = 'الزم المسار الأيمن';
+      } else if (dir === 'left') {
+        l0.className = 'lane-box highlight';
+        if (advice) advice.innerText = 'الزم المسار الأيسر';
+      } else {
+        l1.className = 'lane-box highlight';
+        if (advice) advice.innerText = 'تابع السير في المسار الأوسط';
+      }
+    }
+
+    function startNavigationDrive() {
+      if (!currentPrimaryRoute) return;
+
+      isDrivingActive = true;
+      navigationStepIndex = 0;
+      stopFlyThroughPreview();
+      getAudioContext();
+
+      // Clear alternative route lines and badges for distraction-free cockpit
+      clearAlternativeRouteMarkers();
+      if (map.getSource('route-alt-path')) {
+        map.getSource('route-alt-path').setData({ type: 'FeatureCollection', features: [] });
+      }
+
+      document.body.classList.add('in-driving-mode');
+      document.getElementById('drivingCockpitTop').style.display = 'flex';
+      document.getElementById('drivingCockpitBottom').style.display = 'flex';
+      document.getElementById('drivingSpeedStack').style.display = 'flex';
+      document.getElementById('appleNavHud').style.display = 'none';
+      document.getElementById('speedBadgeHud').style.display = 'none';
+      document.getElementById('tripActiveCapsule').style.display = 'none';
+
+      // 3D In-Car Driving Camera Angle
+      map.easeTo({
+        center: userCoords || IRAQ_CITIES.baghdad.center,
+        zoom: 17.5,
+        pitch: 62,
+        duration: 900
+      });
+
+      updateCockpitArrivalMetrics(currentPrimaryRoute.durationMin, currentPrimaryRoute.distanceKm);
+
+      if (currentPrimaryRoute.steps && currentPrimaryRoute.steps.length > 0) {
+        const first = currentPrimaryRoute.steps[0];
+        updateCockpitManeuver(first, currentPrimaryRoute.steps[1]);
+        speakIraqiManeuver(first.instruction, first.distanceMeters);
+      }
+    }
+
+    function stopNavigationDrive() {
+      isDrivingActive = false;
+      document.body.classList.remove('in-driving-mode');
+      document.getElementById('drivingCockpitTop').style.display = 'none';
+      document.getElementById('drivingCockpitBottom').style.display = 'none';
+      document.getElementById('drivingSpeedStack').style.display = 'none';
+      document.getElementById('hazardAlertBanner').style.display = 'none';
+
+      document.getElementById('appleHeader').style.display = 'flex';
+      document.getElementById('appleDrawer').style.display = 'flex';
+      document.getElementById('appleNavHud').style.display = 'none';
+      document.getElementById('speedBadgeHud').style.display = 'none';
+      document.getElementById('tripActiveCapsule').style.display = 'none';
+
+      map.easeTo({ pitch: is3DView ? 48 : 0, duration: 800 });
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      showToast('تم إنهاء الملاحة');
+
+      // Re-render alternatives if available
+      renderAlternativeRouteLines();
+    }
+
+
+    function distanceToStepMeters(coords, step) {
+      if (!step || !Array.isArray(step.location) || !window.turf) return null;
+      return turf.distance(turf.point(coords), turf.point([step.location[1], step.location[0]]), { units: 'kilometers' }) * 1000;
+    }
+
+    function updateNavigationGuidance(coords, speakOnStart = false) {
+      const steps = currentPrimaryRoute && currentPrimaryRoute.steps;
+      if (!Array.isArray(steps) || !steps.length) {
+        document.getElementById('hudInstruction').innerText = 'تابع المسار على الخريطة';
+        document.getElementById('hudDistance').innerText = 'التوجيه الصوتي غير متاح لهذا المسار';
+        return;
+      }
+      const previousIndex = navigationStepIndex;
+      while (navigationStepIndex < steps.length - 1) {
+        const meters = distanceToStepMeters(coords, steps[navigationStepIndex]);
+        if (meters === null || meters >= 35) break;
+        navigationStepIndex += 1;
+      }
+      const step = steps[navigationStepIndex];
+      const meters = distanceToStepMeters(coords, step);
+      document.getElementById('hudInstruction').innerText = step.instruction;
+      document.getElementById('hudDistance').innerText = meters === null
+        ? 'المسافة التالية ' + step.distanceMeters + ' م'
+        : 'بعد ' + Math.max(0, Math.round(meters)) + ' م';
+      if (speakOnStart || previousIndex !== navigationStepIndex) {
+        speakIraqiManeuver(step.instruction, meters === null ? step.distanceMeters : Math.round(meters));
+      }
+    }
+
+    function updateTripStats(coords) {
+      if (!currentPrimaryRoute || !window.turf) return;
+      try {
+        const line = turf.lineString(currentPrimaryRoute.geometry.coordinates);
+        const snapped = turf.nearestPointOnLine(line, turf.point(coords), { units: 'kilometers' });
+        const totalKm = Number(currentPrimaryRoute.distanceKm) || 0;
+        const traveledKm = Number(snapped.properties.location) || 0;
+        const remainingKm = Math.max(0, totalKm - traveledKm);
+        const ratio = totalKm > 0 ? Math.min(1, remainingKm / totalKm) : 1;
+        const remainingMin = Math.max(0, Math.round(currentPrimaryRoute.durationMin * ratio));
+        const arrival = new Date(Date.now() + remainingMin * 60000)
+          .toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('capsuleEta').innerText = '~' + remainingMin + ' دقيقة';
+        document.getElementById('capsuleArrival').innerText = 'وصول تقريبي ' + arrival + ' • ' + remainingKm.toFixed(1) + ' كم';
+      } catch (err) {}
+    }
+
+    
+    let lastHazardAlertTime = 0;
+    function checkNearbyHazards(coords) {
+      if (Date.now() - lastHazardAlertTime < 40000) return; // Rate limit alerts
+      if (!window.turf || !incidentMarkers) return;
+
+      const userPt = turf.point(coords);
+      for (const [id, m] of incidentMarkers.entries()) {
+        const markerLngLat = m.getLngLat();
+        const distKm = turf.distance(userPt, turf.point([markerLngLat.lng, markerLngLat.lat]), { units: 'kilometers' });
+        if (distKm <= 0.45) { // Within 450 meters
+          lastHazardAlertTime = Date.now();
+          playHazardCautionTone(); playStudioVoice('checkpoint');
+          const banner = document.getElementById('hazardAlertBanner');
+          const title = document.getElementById('hazardAlertTitle');
+          const subtitle = document.getElementById('hazardAlertSubtitle');
+          if (banner && title && subtitle) {
+            title.innerText = 'تنبيه أمان: خطر على بعد ' + Math.round(distKm * 1000) + ' متر';
+            subtitle.innerText = 'خفف السرعة وكن على استعداد للتوقف (مرصود مجتمعياً ومحفوظ للأبد)';
+            banner.style.display = 'flex';
+            setTimeout(() => { banner.style.display = 'none'; }, 9000);
+          }
+          break;
+        }
+      }
+    }
+
+    function handleNavigationStep(coords, heading) {
+      if (!currentPrimaryRoute || !currentPrimaryRoute.geometry) return;
+      map.easeTo({ center: coords, bearing: heading || 0, pitch: is3DView ? 55 : 0, duration: 700 });
+      updateNavigationGuidance(coords);
+      checkNearbyHazards(coords);
+      try {
+        const pt = turf.point(coords);
+        const line = turf.lineString(currentPrimaryRoute.geometry.coordinates);
+        const deviationKm = turf.pointToLineDistance(pt, line, { units: 'kilometers' });
+        if (deviationKm > 0.045) {
+          offRouteCount += 1;
+          if (offRouteCount >= 2) {
+            recalculateActiveRoute();
+            offRouteCount = 0;
+          }
+        } else {
+          offRouteCount = 0;
+        }
+      } catch (err) {}
+    }
+
+    async function recalculateActiveRoute() {
+      if (!destinationCoords || !userCoords) return;
+      try {
+        const start = userCoords[1] + ',' + userCoords[0];
+        const end = destinationCoords[1] + ',' + destinationCoords[0];
+        const response = await fetch('/api/route?start=' + start + '&end=' + end + '&lang=' + currentLang);
+        const data = await response.json();
+        if (!response.ok || data.status !== 'ok' || !Array.isArray(data.routes) || !data.routes.length) {
+          throw new Error(data.message || 'تعذرت إعادة حساب المسار.');
+        }
+        availableRoutes = data.routes;
+        currentPrimaryRoute = availableRoutes[0];
+        navigationStepIndex = 0;
+        map.getSource('route-path').setData(currentPrimaryRoute.geometry);
+        updateNavigationGuidance(userCoords, true);
+        updateTripStats(userCoords);
+        showToast('تم تحديث المسار حسب موقعك الحالي.');
+      } catch (err) {
+        showToast(err.message || 'تعذرت إعادة حساب المسار.');
+      }
+    }
+
+    async function loadTrafficSignals() {
+      try {
+        const response = await fetch('/api/traffic');
+        if (!response.ok) return;
+        const data = await response.json();
+        const source = map && map.getSource('community-traffic');
+        if (!source) return;
+        const features = (data.signals || []).map(signal => ({
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [signal.lng, signal.lat] },
+          properties: {
+            medianSpeedKmh: signal.medianSpeedKmh,
+            contributors: signal.contributors,
+            updatedAt: signal.updatedAt
+          }
+        }));
+        source.setData({ type: 'FeatureCollection', features });
+        document.getElementById('trafficStatus').textContent = features.length
+          ? 'إشارات مجتمعية: ' + features.length + ' خلايا • آخر 15 دقيقة • 3 مساهمين على الأقل'
+          : 'لا توجد بيانات سرعة مجتمعية كافية بعد';
+        document.getElementById('trafficLegend').style.display = features.length ? 'flex' : 'none';
+      } catch (err) {}
+    }
+
+    function showTrafficSignalPopup(event) {
+      const feature = event.features && event.features[0];
+      if (!feature) return;
+      const properties = feature.properties;
+      const root = document.createElement('div');
+      root.className = 'incident-popup';
+      const title = document.createElement('strong');
+      title.textContent = 'سرعة مجتمعية مرصودة: ' + properties.medianSpeedKmh + ' كم/س';
+      const detail = document.createElement('small');
+      const seenAt = new Date(properties.updatedAt).toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
+      detail.textContent = properties.contributors + '+ مساهمين • قراءة مجمعة ضمن خلية تقريبية • ' + seenAt;
+      root.append(title, detail);
+      new maplibregl.Popup({ offset: 12 }).setLngLat(event.lngLat).setDOMContent(root).addTo(map);
+    }
+
+    // Iraqi Dialect Voice Co-Pilot
+    
+    function speakIraqiManeuver(instruction, distanceM) {
+      if (isAudioMuted) return;
+      const inst = (instruction || '').toLowerCase();
+      const dist = Number(distanceM) || 300;
+
+      if (inst.includes('الوصول') || inst.includes('arrive')) {
+        playStudioVoice('arrive');
+      } else if (inst.includes('يمين') || inst.includes('right')) {
+        playStudioVoice(dist <= 60 ? 'turn_right_now' : 'turn_right');
+      } else if (inst.includes('يسار') || inst.includes('left')) {
+        playStudioVoice(dist <= 60 ? 'turn_left_now' : 'turn_left');
+      } else if (inst.includes('تابع') || inst.includes('continue')) {
+        playStudioVoice('continue');
+      } else {
+        playStudioVoice('continue');
+      }
+    }
+
+
+    // Place Search
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    const btnClearSearch = document.getElementById('btnClearSearch');
+
+    searchInput.addEventListener('input', async (e) => {
+      const q = e.target.value.trim();
+      btnClearSearch.style.display = q.length > 0 ? 'inline' : 'none';
+
+      if (q.length < 2) {
+        searchResults.style.display = 'none';
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/places?q=${encodeURIComponent(q)}`);
+        const places = await res.json();
+
+        if (places.length === 0) {
+          searchResults.innerHTML = '<div style="padding:14px; text-align:center; color:var(--ios-text-secondary); font-size:13px;">لا توجد نتائج مطابقة</div>';
+        } else {
+          searchResults.innerHTML = places.map(p => `
+            <div class="poi-item" onclick="selectPoi(${p.lng}, ${p.lat}, '${escapeHtml(p.name)}')">
+              <div>
+                <div style="font-weight:700; font-size:14px;">${escapeHtml(p.name)}</div>
+                <div style="font-size:12px; color:var(--ios-text-secondary);">${escapeHtml(p.city)} • ${escapeHtml(p.category)}</div>
+              </div>
+              <i class="fa-solid fa-diamond-turn-right" style="color:var(--ios-blue);"></i>
+            </div>
+          `).join('');
+        }
+        searchResults.style.display = 'block';
+      } catch (err) {
+        searchResults.style.display = 'none';
+      }
+    });
+
+    function selectPoi(lng, lat, name) {
+      searchInput.value = name;
+      searchResults.style.display = 'none';
+      calculateRouteTo(lng, lat, name);
+    }
+
+    function searchCategory(cat) {
+      searchInput.value = cat;
+      searchInput.dispatchEvent(new Event('input'));
+    }
+
+    function clearSearch() {
+      searchInput.value = '';
+      btnClearSearch.style.display = 'none';
+      searchResults.style.display = 'none';
+    }
+
+    function jumpToCity(key) {
+      const city = IRAQ_CITIES[key];
+      if (city && map) {
+        map.flyTo({ center: city.center, zoom: city.zoom, duration: 1500 });
+      }
+    }
+
+    // Baghdad bridges: show only aggregated observations, or clearly say no data.
+    async function openBridgesModal() {
+      document.getElementById('bridgesModal').style.display = 'flex';
+      const container = document.getElementById('bridgesList');
+      container.textContent = 'جارٍ تحميل بيانات المجتمع...';
+      try {
+        const response = await fetch('/api/bridges');
+        const data = await response.json();
+        if (!response.ok) throw new Error('تعذر تحميل البيانات.');
+        container.replaceChildren();
+        data.bridges.forEach(bridge => {
+          const card = document.createElement('div');
+          card.className = 'bridge-card';
+          card.addEventListener('click', () => flyToBridge(bridge.lng, bridge.lat, bridge.name_ar));
+          const place = document.createElement('div');
+          const name = document.createElement('div');
+          name.style.fontWeight = '700';
+          name.style.fontSize = '15px';
+          name.textContent = bridge.name_ar;
+          const connects = document.createElement('div');
+          connects.style.fontSize = '12px';
+          connects.style.color = 'var(--ios-text-secondary)';
+          connects.textContent = bridge.connects;
+          place.append(name, connects);
+          const observation = document.createElement('div');
+          observation.style.textAlign = 'left';
+          const pill = document.createElement('span');
+          pill.className = 'bridge-status-pill ' + (bridge.status === 'observed' ? 'status-congested' : '');
+          pill.textContent = bridge.status === 'observed' ? 'سرعة مرصودة' : 'لا توجد بيانات كافية';
+          const detail = document.createElement('div');
+          detail.style.fontSize = '11px';
+          detail.style.color = 'var(--ios-text-secondary)';
+          detail.style.marginTop = '3px';
+          detail.textContent = bridge.status === 'observed'
+            ? bridge.medianSpeedKmh + ' كم/س • ' + bridge.contributors + '+ سائقين'
+            : 'تظهر بعد مساهمة 3 سائقين في المنطقة';
+          observation.append(pill, detail);
+          card.append(place, observation);
+          container.appendChild(card);
+        });
+      } catch (err) {
+        container.textContent = err.message || 'تعذر تحميل البيانات';
+      }
+    }
+
+    function closeBridgesModal() {
+      document.getElementById('bridgesModal').style.display = 'none';
+    }
+
+    function flyToBridge(lng, lat, name) {
+      closeBridgesModal();
+      map.flyTo({
+        center: [lng, lat],
+        zoom: 16.5,
+        pitch: 55,
+        bearing: 45,
+        duration: 1400
+      });
+      calculateRouteTo(lng, lat, name);
+    }
+
+    // Dialect Selection
+    function openDialectModal() { document.getElementById('dialectModal').style.display = 'flex'; }
+    function closeDialectModal() { document.getElementById('dialectModal').style.display = 'none'; }
+
+    function saveDialectChoice() {
+      const choice = document.querySelector('input[name="dialectChoice"]:checked').value;
+      chosenDialect = choice;
+      closeDialectModal();
+      speakIraqiManeuver('امشي عدل على السريع', 0);
+    }
+
+    // Community incidents with timestamps, confirmation status, and live refresh
+    function formatIncidentAge(timestamp) {
+      const minutes = Math.max(0, Math.floor((Date.now() - Number(timestamp)) / 60000));
+      if (minutes < 1) return 'الآن';
+      if (minutes < 60) return 'قبل ' + minutes + ' دقيقة';
+      return 'قبل ' + Math.floor(minutes / 60) + ' ساعة';
+    }
+
+    function makeIncidentPopup(incident) {
+      const root = document.createElement('div');
+      root.className = 'incident-popup';
+      const title = document.createElement('strong');
+      title.textContent = incident.name_ar || 'بلاغ طريق';
+      const meta = document.createElement('small');
+      meta.textContent = (incident.verified ? 'مؤكد مجتمعياً' : 'غير مؤكد')
+        + ' • ' + (incident.votes || 0) + ' تأييد • ' + formatIncidentAge(incident.timestamp);
+      root.append(title, meta);
+      if (!incident.verified) {
+        const actions = document.createElement('div');
+        actions.className = 'incident-actions';
+        const confirm = document.createElement('button');
+        confirm.type = 'button';
+        confirm.textContent = 'ما زال موجوداً';
+        confirm.addEventListener('click', () => voteIncident(incident.id, 1));
+        const dismiss = document.createElement('button');
+        dismiss.type = 'button';
+        dismiss.textContent = 'انتهى';
+        dismiss.addEventListener('click', () => voteIncident(incident.id, -1));
+        actions.append(confirm, dismiss);
+        root.appendChild(actions);
+      }
+      return root;
+    }
+
+    async function loadIncidents() {
+      try {
+        const response = await fetch('/api/incidents');
+        if (!response.ok) return;
+        const list = await response.json();
+        incidentMarkers.forEach(marker => marker.remove());
+        incidentMarkers.clear();
+        list.forEach(incident => {
+          const element = document.createElement('div');
+          element.style.width = '34px';
+          element.style.height = '34px';
+          element.style.borderRadius = '50%';
+          element.style.background = incident.verified ? '#137b68' : '#d49b42';
+          element.style.border = '2px solid #fff';
+          element.style.color = '#fff';
+          element.style.display = 'flex';
+          element.style.alignItems = 'center';
+          element.style.justifyContent = 'center';
+          element.style.fontSize = '14px';
+          element.style.boxShadow = '0 3px 10px rgba(0,0,0,.24)';
+          element.innerHTML = incident.type === 'accident'
+            ? '<i class="fa-solid fa-car-burst"></i>'
+            : '<i class="fa-solid fa-triangle-exclamation"></i>';
+          const popup = new maplibregl.Popup({ offset: 20 }).setDOMContent(makeIncidentPopup(incident));
+          const marker = new maplibregl.Marker({ element })
+            .setLngLat([incident.lng, incident.lat])
+            .setPopup(popup)
+            .addTo(map);
+          incidentMarkers.set(incident.id, marker);
+        });
+      } catch (err) {}
+    }
+
+    async function voteIncident(id, vote) {
+      try {
+        const response = await fetch('/api/incidents/' + encodeURIComponent(id) + '/vote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ vote, sessionId: contributionSessionId })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'تعذر تحديث البلاغ.');
+        showToast(data.verified ? 'أكد المجتمع استمرار البلاغ.' : 'تم تسجيل إفادتك.');
+        await loadIncidents();
+      } catch (err) {
+        showToast(err.message || 'تعذر تحديث البلاغ.');
+      }
+    }
+
+    function connectIncidentFeed() {
+      if (!window.WebSocket || !location.host) return;
+      const scheme = location.protocol === 'https:' ? 'wss://' : 'ws://';
+      try {
+        trafficSocket = new WebSocket(scheme + location.host);
+        trafficSocket.onmessage = () => loadIncidents();
+        trafficSocket.onclose = () => setTimeout(connectIncidentFeed, 5000);
+      } catch (err) {
+        setTimeout(connectIncidentFeed, 8000);
+      }
+    }
+
+    function openReportModal() {
+      if (!userCoords || locationAccuracyMeters > 60) {
+        showToast('فعّل GPS وانتظر تثبيت موقعك قبل إرسال بلاغ.');
+        return;
+      }
+      document.getElementById('reportModal').style.display = 'flex';
+    }
+    function closeReportModal() { document.getElementById('reportModal').style.display = 'none'; }
+
+    async function submitReport() {
+      const type = document.getElementById('reportType').value;
+      const title = document.getElementById('reportTitle').value.trim();
+      if (!userCoords || locationAccuracyMeters > 60) {
+        showToast('لم يُرسل البلاغ لأن موقع GPS غير مؤكد.');
+        return;
+      }
+      if (!title) {
+        showToast('اكتب وصفاً موجزاً للبلاغ.');
+        return;
+      }
+      try {
+        const response = await fetch('/api/incidents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type,
+            name_ar: title,
+            lat: userCoords[1],
+            lng: userCoords[0],
+            city: 'العراق',
+            sessionId: contributionSessionId
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'تعذر إرسال البلاغ.');
+        closeReportModal();
+        document.getElementById('reportTitle').value = '';
+        showToast('وصل البلاغ، وسيبقى غير مؤكد حتى يراجعه سائقون آخرون.');
+        await loadIncidents();
+      } catch (err) {
+        showToast(err.message || 'تعذر الاتصال بالخادم؛ لم نؤكد إرسال البلاغ.');
+      }
+    }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'ar' ? 'en' : 'ar';
+      document.documentElement.lang = currentLang;
+      document.documentElement.dir = currentLang === 'en' ? 'ltr' : 'rtl';
+      document.body.classList.toggle('lang-en', currentLang === 'en');
+      document.getElementById('langBtn').innerText = currentLang === 'ar' ? 'EN' : 'عربي';
+      document.getElementById('searchInput').placeholder = currentLang === 'ar' ? 'ابحث في بغداد والمحافظات...' : 'Search in Baghdad and Iraq...';
+    }
+
+    window.onload = () => {
+      initTrafficConsent();
+      initMap();
+      if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      }
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "دلدل | Duldul Navigation",
+  "short_name": "دلدل",
+  "description": "منصة دلدل للملاحة الذكية والمجتمعية لجمهورية العراق",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#248a3d",
+  "dir": "rtl",
+  "lang": "ar",
+  "categories": ["navigation", "maps", "travel"],
+  "icons": [
+    {
+      "src": "/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

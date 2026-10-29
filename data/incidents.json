@@ -1,0 +1,443 @@
+[
+  {
+    "id": "inc-1793306221004-901",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793306221003",
+      "session-voter-a"
+    ],
+    "timestamp": 1793306221004
+  },
+  {
+    "id": "inc-1793305617832-515",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793305617830",
+      "session-voter-a"
+    ],
+    "timestamp": 1793305617832
+  },
+  {
+    "id": "inc-1793293575604-32",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793293575603",
+      "session-voter-a"
+    ],
+    "timestamp": 1793293575604
+  },
+  {
+    "id": "inc-1793293328575-72",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793293328574",
+      "session-voter-a"
+    ],
+    "timestamp": 1793293328575
+  },
+  {
+    "id": "inc-1793292921766-76",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793292921765",
+      "session-voter-a"
+    ],
+    "timestamp": 1793292921766
+  },
+  {
+    "id": "inc-1793292318935-951",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793292318934",
+      "session-voter-a"
+    ],
+    "timestamp": 1793292318935
+  },
+  {
+    "id": "inc-1793291697013-734",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793291697013",
+      "session-voter-a"
+    ],
+    "timestamp": 1793291697013
+  },
+  {
+    "id": "inc-1793291689514-929",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793291689513",
+      "session-voter-a"
+    ],
+    "timestamp": 1793291689514
+  },
+  {
+    "id": "inc-1793291567839-422",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 1,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-session"
+    ],
+    "timestamp": 1793291567839
+  },
+  {
+    "id": "inc-1793291490005-274",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793291490004",
+      "session-voter-a"
+    ],
+    "timestamp": 1793291490005
+  },
+  {
+    "id": "inc-1793290560557-318",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793290560556",
+      "session-voter-a"
+    ],
+    "timestamp": 1793290560557
+  },
+  {
+    "id": "inc-1793289980014-182",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793289980013",
+      "session-voter-a"
+    ],
+    "timestamp": 1793289980014
+  },
+  {
+    "id": "inc-1793289484658-922",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793289484658",
+      "session-voter-a"
+    ],
+    "timestamp": 1793289484658
+  },
+  {
+    "id": "inc-1793289332039-848",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793289332038",
+      "session-voter-a"
+    ],
+    "timestamp": 1793289332039
+  },
+  {
+    "id": "inc-1793287967060-666",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793287967059",
+      "session-voter-a"
+    ],
+    "timestamp": 1793287967060
+  },
+  {
+    "id": "inc-1793280515104-331",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793280515103",
+      "session-voter-a"
+    ],
+    "timestamp": 1793280515104
+  },
+  {
+    "id": "inc-1793223370152-876",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793223370151",
+      "session-voter-a"
+    ],
+    "timestamp": 1793223370152
+  },
+  {
+    "id": "inc-1793222668425-986",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793222668425",
+      "session-voter-a"
+    ],
+    "timestamp": 1793222668425
+  },
+  {
+    "id": "inc-1793221372242-163",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793221372242",
+      "session-voter-a"
+    ],
+    "timestamp": 1793221372242
+  },
+  {
+    "id": "inc-1793220662360-13",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793220662360",
+      "session-voter-a"
+    ],
+    "timestamp": 1793220662360
+  },
+  {
+    "id": "inc-1793220354118-977",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793220354117",
+      "session-voter-a"
+    ],
+    "timestamp": 1793220354118
+  },
+  {
+    "id": "inc-1793220291766-741",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793220291765",
+      "session-voter-a"
+    ],
+    "timestamp": 1793220291766
+  },
+  {
+    "id": "inc-1793219499137-619",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793219499136",
+      "session-voter-a"
+    ],
+    "timestamp": 1793219499137
+  },
+  {
+    "id": "inc-1793219189182-905",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793219189180",
+      "session-voter-a"
+    ],
+    "timestamp": 1793219189182
+  },
+  {
+    "id": "inc-1793218545819-661",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793218545818",
+      "session-voter-a"
+    ],
+    "timestamp": 1793218545819
+  },
+  {
+    "id": "inc-1793218026888-106",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793218026887",
+      "session-voter-a"
+    ],
+    "timestamp": 1793218026888
+  }
+]

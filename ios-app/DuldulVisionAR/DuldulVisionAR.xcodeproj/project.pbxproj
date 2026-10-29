@@ -1,0 +1,372 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AA0100012C00010000000001 /* DuldulVisionARApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200012C00010000000001 /* DuldulVisionARApp.swift */; };
+		AA0100022C00010000000002 /* SpatialAnchorModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200022C00010000000002 /* SpatialAnchorModel.swift */; };
+		AA0100032C00010000000003 /* ARKitVisionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200032C00010000000003 /* ARKitVisionManager.swift */; };
+		AA0100042C00010000000004 /* LiDARDepthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200042C00010000000004 /* LiDARDepthManager.swift */; };
+		AA0100052C00010000000005 /* NavigationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200052C00010000000005 /* NavigationManager.swift */; };
+		AA0100062C00010000000006 /* IncidentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200062C00010000000006 /* IncidentManager.swift */; };
+		AA0100072C00010000000007 /* BridgesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200072C00010000000007 /* BridgesManager.swift */; };
+		AA0100082C00010000000008 /* SpatialCatalogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200082C00010000000008 /* SpatialCatalogService.swift */; };
+		AA0100092C00010000000009 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200092C00010000000009 /* ContentView.swift */; };
+		AA01000A2C0001000000000A /* MapNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02000A2C0001000000000A /* MapNavigationView.swift */; };
+		AA01000B2C0001000000000B /* TeslaFSDVectorSpaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02000B2C0001000000000B /* TeslaFSDVectorSpaceView.swift */; };
+		AA01000C2C0001000000000C /* SpatialARScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02000C2C0001000000000C /* SpatialARScannerView.swift */; };
+		AA01000D2C0001000000000D /* BridgesRadarSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02000D2C0001000000000D /* BridgesRadarSheet.swift */; };
+		AA01000E2C0001000000000E /* ReportHazardSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02000E2C0001000000000E /* ReportHazardSheet.swift */; };
+		AA01000F2C0001000000000F /* LiquidGlassModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02000F2C0001000000000F /* LiquidGlassModifier.swift */; };
+		AA0100102C00010000000010 /* GeoSpatialARManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200112C00010000000011 /* GeoSpatialARManager.swift */; };
+		AA0100112C00010000000011 /* GeoCompassRadarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200122C00010000000012 /* GeoCompassRadarView.swift */; };
+		AA0100122C00010000000012 /* GeoARBillboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200132C00010000000013 /* GeoARBillboardView.swift */; };
+		AA0100132C00010000000013 /* GeoOffscreenIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200142C00010000000014 /* GeoOffscreenIndicatorView.swift */; };
+		AA0100142C00010000000014 /* GeoLandmarkDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200152C00010000000015 /* GeoLandmarkDetailSheet.swift */; };
+		AA0100152C00010000000015 /* MonumentDiscoveryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200162C00010000000016 /* MonumentDiscoveryModel.swift */; };
+		AA0100162C00010000000016 /* CityMonumentsDiscoveryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200172C00010000000017 /* CityMonumentsDiscoveryManager.swift */; };
+		AA0100172C00010000000017 /* MonumentDiscoveryAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200182C00010000000018 /* MonumentDiscoveryAlertView.swift */; };
+		AA0100182C00010000000018 /* DiscoveryCelebrationModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200192C00010000000019 /* DiscoveryCelebrationModal.swift */; };
+		AA0100192C00010000000019 /* MonumentJournalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200202C00010000000020 /* MonumentJournalView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		AA0300012C00010000000001 /* DuldulVisionAR.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DuldulVisionAR.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0200012C00010000000001 /* DuldulVisionARApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuldulVisionARApp.swift; sourceTree = "<group>"; };
+		AA0200022C00010000000002 /* SpatialAnchorModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpatialAnchorModel.swift; sourceTree = "<group>"; };
+		AA0200032C00010000000003 /* ARKitVisionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARKitVisionManager.swift; sourceTree = "<group>"; };
+		AA0200042C00010000000004 /* LiDARDepthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiDARDepthManager.swift; sourceTree = "<group>"; };
+		AA0200052C00010000000005 /* NavigationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationManager.swift; sourceTree = "<group>"; };
+		AA0200062C00010000000006 /* IncidentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncidentManager.swift; sourceTree = "<group>"; };
+		AA0200072C00010000000007 /* BridgesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgesManager.swift; sourceTree = "<group>"; };
+		AA0200082C00010000000008 /* SpatialCatalogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpatialCatalogService.swift; sourceTree = "<group>"; };
+		AA0200092C00010000000009 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		AA02000A2C0001000000000A /* MapNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapNavigationView.swift; sourceTree = "<group>"; };
+		AA02000B2C0001000000000B /* TeslaFSDVectorSpaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeslaFSDVectorSpaceView.swift; sourceTree = "<group>"; };
+		AA02000C2C0001000000000C /* SpatialARScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpatialARScannerView.swift; sourceTree = "<group>"; };
+		AA02000D2C0001000000000D /* BridgesRadarSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgesRadarSheet.swift; sourceTree = "<group>"; };
+		AA02000E2C0001000000000E /* ReportHazardSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportHazardSheet.swift; sourceTree = "<group>"; };
+		AA02000F2C0001000000000F /* LiquidGlassModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassModifier.swift; sourceTree = "<group>"; };
+		AA0200102C00010000000010 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA0200112C00010000000011 /* GeoSpatialARManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoSpatialARManager.swift; sourceTree = "<group>"; };
+		AA0200122C00010000000012 /* GeoCompassRadarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoCompassRadarView.swift; sourceTree = "<group>"; };
+		AA0200132C00010000000013 /* GeoARBillboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoARBillboardView.swift; sourceTree = "<group>"; };
+		AA0200142C00010000000014 /* GeoOffscreenIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoOffscreenIndicatorView.swift; sourceTree = "<group>"; };
+		AA0200152C00010000000015 /* GeoLandmarkDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoLandmarkDetailSheet.swift; sourceTree = "<group>"; };
+		AA0200162C00010000000016 /* MonumentDiscoveryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonumentDiscoveryModel.swift; sourceTree = "<group>"; };
+		AA0200172C00010000000017 /* CityMonumentsDiscoveryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CityMonumentsDiscoveryManager.swift; sourceTree = "<group>"; };
+		AA0200182C00010000000018 /* MonumentDiscoveryAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonumentDiscoveryAlertView.swift; sourceTree = "<group>"; };
+		AA0200192C00010000000019 /* DiscoveryCelebrationModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveryCelebrationModal.swift; sourceTree = "<group>"; };
+		AA0200202C00010000000020 /* MonumentJournalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonumentJournalView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AA0400012C00010000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		AA0500012C00010000000001 = {
+			isa = PBXGroup;
+			children = (
+				AA0500022C00010000000002 /* Sources */,
+				AA0200102C00010000000010 /* Info.plist */,
+				AA0500072C00010000000007 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		AA0500022C00010000000002 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				AA0500032C00010000000003 /* App */,
+				AA0500042C00010000000004 /* Models */,
+				AA0500052C00010000000005 /* Services */,
+				AA0500062C00010000000006 /* Views */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		AA0500032C00010000000003 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				AA0200012C00010000000001 /* DuldulVisionARApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		AA0500042C00010000000004 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				AA0200022C00010000000002 /* SpatialAnchorModel.swift */,
+				AA0200162C00010000000016 /* MonumentDiscoveryModel.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		AA0500052C00010000000005 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				AA0200172C00010000000017 /* CityMonumentsDiscoveryManager.swift */,
+				AA0200112C00010000000011 /* GeoSpatialARManager.swift */,
+				AA0200032C00010000000003 /* ARKitVisionManager.swift */,
+				AA0200042C00010000000004 /* LiDARDepthManager.swift */,
+				AA0200052C00010000000005 /* NavigationManager.swift */,
+				AA0200062C00010000000006 /* IncidentManager.swift */,
+				AA0200072C00010000000007 /* BridgesManager.swift */,
+				AA0200082C00010000000008 /* SpatialCatalogService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		AA0500062C00010000000006 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				AA0500082C00010000000008 /* Components */,
+				AA0200202C00010000000020 /* MonumentJournalView.swift */,
+				AA0200092C00010000000009 /* ContentView.swift */,
+				AA02000A2C0001000000000A /* MapNavigationView.swift */,
+				AA02000B2C0001000000000B /* TeslaFSDVectorSpaceView.swift */,
+				AA02000C2C0001000000000C /* SpatialARScannerView.swift */,
+				AA02000D2C0001000000000D /* BridgesRadarSheet.swift */,
+				AA02000E2C0001000000000E /* ReportHazardSheet.swift */,
+				AA02000F2C0001000000000F /* LiquidGlassModifier.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		AA0500082C00010000000008 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				AA0200182C00010000000018 /* MonumentDiscoveryAlertView.swift */,
+				AA0200192C00010000000019 /* DiscoveryCelebrationModal.swift */,
+				AA0200122C00010000000012 /* GeoCompassRadarView.swift */,
+				AA0200132C00010000000013 /* GeoARBillboardView.swift */,
+				AA0200142C00010000000014 /* GeoOffscreenIndicatorView.swift */,
+				AA0200152C00010000000015 /* GeoLandmarkDetailSheet.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		AA0500072C00010000000007 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AA0300012C00010000000001 /* DuldulVisionAR.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AA0600012C00010000000001 /* DuldulVisionAR */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA0700012C00010000000001 /* Build configuration list for PBXNativeTarget "DuldulVisionAR" */;
+			buildPhases = (
+				AA0800012C00010000000001 /* Sources */,
+				AA0400012C00010000000001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DuldulVisionAR;
+			productName = DuldulVisionAR;
+			productReference = AA0300012C00010000000001 /* DuldulVisionAR.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AA0900012C00010000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					AA0600012C00010000000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = AA0700022C00010000000002 /* Build configuration list for PBXProject "DuldulVisionAR" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AA0500012C00010000000001;
+			productRefGroup = AA0500072C00010000000007 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AA0600012C00010000000001 /* DuldulVisionAR */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AA0800012C00010000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA0100012C00010000000001 /* DuldulVisionARApp.swift in Sources */,
+				AA0100022C00010000000002 /* SpatialAnchorModel.swift in Sources */,
+				AA0100032C00010000000003 /* ARKitVisionManager.swift in Sources */,
+				AA0100042C00010000000004 /* LiDARDepthManager.swift in Sources */,
+				AA0100052C00010000000005 /* NavigationManager.swift in Sources */,
+				AA0100062C00010000000006 /* IncidentManager.swift in Sources */,
+				AA0100072C00010000000007 /* BridgesManager.swift in Sources */,
+				AA0100082C00010000000008 /* SpatialCatalogService.swift in Sources */,
+				AA0100092C00010000000009 /* ContentView.swift in Sources */,
+				AA01000A2C0001000000000A /* MapNavigationView.swift in Sources */,
+				AA01000B2C0001000000000B /* TeslaFSDVectorSpaceView.swift in Sources */,
+				AA01000C2C0001000000000C /* SpatialARScannerView.swift in Sources */,
+				AA01000D2C0001000000000D /* BridgesRadarSheet.swift in Sources */,
+				AA01000E2C0001000000000E /* ReportHazardSheet.swift in Sources */,
+				AA01000F2C0001000000000F /* LiquidGlassModifier.swift in Sources */,
+				AA0100102C00010000000010 /* GeoSpatialARManager.swift in Sources */,
+				AA0100112C00010000000011 /* GeoCompassRadarView.swift in Sources */,
+				AA0100122C00010000000012 /* GeoARBillboardView.swift in Sources */,
+				AA0100132C00010000000013 /* GeoOffscreenIndicatorView.swift in Sources */,
+				AA0100142C00010000000014 /* GeoLandmarkDetailSheet.swift in Sources */,
+				AA0100152C00010000000015 /* MonumentDiscoveryModel.swift in Sources */,
+				AA0100162C00010000000016 /* CityMonumentsDiscoveryManager.swift in Sources */,
+				AA0100172C00010000000017 /* MonumentDiscoveryAlertView.swift in Sources */,
+				AA0100182C00010000000018 /* DiscoveryCelebrationModal.swift in Sources */,
+				AA0100192C00010000000019 /* MonumentJournalView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		AA0A00012C00010000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		AA0A00022C00010000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_OPTIMIZATION_LEVEL = s;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		AA0A00032C00010000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = iq.duldul.visionar;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AA0A00042C00010000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = iq.duldul.visionar;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AA0700012C00010000000001 /* Build configuration list for PBXNativeTarget "DuldulVisionAR" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0A00032C00010000000003 /* Debug */,
+				AA0A00042C00010000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA0700022C00010000000002 /* Build configuration list for PBXProject "DuldulVisionAR" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0A00012C00010000000001 /* Debug */,
+				AA0A00022C00010000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+	};
+	rootObject = AA0900012C00010000000001 /* Project object */;
+}

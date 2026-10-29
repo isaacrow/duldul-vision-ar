@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">مسار العراق</string>
+    <string name="nav_service_channel_name">توجيه الملاحة المباشر</string>
+    <string name="nav_service_desc">يحافظ على استقبال إشارات GPS أثناء عمل التطبيق في الخلفية</string>
+    <string name="driving_towards">انطلق نحو الوجهة</string>
+    <string name="stop_navigation">إنهاء الملاحة</string>
+</resources>

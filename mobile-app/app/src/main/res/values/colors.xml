@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Apple Liquid Glass Palette -->
+    <color name="apple_bg">#090D16</color>
+    <color name="apple_glass">#AD121928</color>
+    <color name="apple_glass_card">#B8182032</color>
+    <color name="apple_glass_border">#2EFFFFFF</color>
+    <color name="apple_green">#34C759</color>
+    <color name="apple_green_dark">#248A3D</color>
+    <color name="apple_blue">#007AFF</color>
+    <color name="apple_red">#FF3B30</color>
+    <color name="apple_cyan">#32ADE6</color>
+    <color name="apple_text_primary">#FFFFFF</color>
+    <color name="apple_text_secondary">#B8EBEBF5</color>
+</resources>
