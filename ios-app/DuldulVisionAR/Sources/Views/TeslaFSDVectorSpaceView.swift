@@ -5,7 +5,7 @@ public struct TeslaFSDVectorSpaceView: View {
     @EnvironmentObject var navManager: NavigationManager
     @EnvironmentObject var incidentManager: IncidentManager
     
-    var body: some View {
+    public var body: some View {
         ZStack {
             // Dark 3D Vector Space Canvas (Matches Tesla FSD Screenshots)
             TeslaSceneView(currentSpeed: navManager.currentSpeedKmh)
@@ -200,7 +200,7 @@ struct TeslaSceneView: UIViewRepresentable {
                     let dashGeo = SCNBox(width: 0.14, height: 0.02, length: 3.2, chamferRadius: 0)
                     dashGeo.firstMaterial?.diffuse.contents = UIColor.lightGray
                     let dashNode = SCNNode(geometry: dashGeo)
-                    dashNode.position = SCNVector3(laneX, 0.01, Float(-i * 10))
+                    dashNode.position = SCNVector3(laneX, 0.01, Double(-i * 10))
                     scene.rootNode.addChildNode(dashNode)
                 }
             }

@@ -300,7 +300,7 @@ public struct SpatialARScannerView: View {
             bridges: bridgesManager.bridges,
             incidents: incidentManager.incidents,
             routeSteps: navManager.activeRoute?.steps ?? [],
-            scannedShops: catalogService.scannedEntities
+            scannedShops: catalogService.catalogedAnchors
         )
     }
     

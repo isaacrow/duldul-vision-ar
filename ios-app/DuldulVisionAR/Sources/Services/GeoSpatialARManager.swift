@@ -303,7 +303,7 @@ public class GeoSpatialARManager: NSObject, ObservableObject, ARSessionDelegate 
             let anchor = AnchorEntity(world: transform)
             
             // 3D Visual Geo Pin
-            let pinMesh = MeshResource.generateCylinder(height: 1.8, radius: 0.08)
+            let pinMesh = MeshResource.generateBox(size: [0.16, 1.8, 0.16], cornerRadius: 0.08)
             let pinMaterial = SimpleMaterial(color: UIColor.systemCyan.withAlphaComponent(0.85), isMetallic: true)
             let pinEntity = ModelEntity(mesh: pinMesh, materials: [pinMaterial])
             

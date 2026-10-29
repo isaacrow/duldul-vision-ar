@@ -318,7 +318,7 @@ public class CityMonumentsDiscoveryManager: ObservableObject {
         switch monument.artifactType {
         case .holographicBeacon:
             // 1. Vertical Light Pillar / Laser
-            let pillarMesh = MeshResource.generateCylinder(height: 8.0, radius: 0.15)
+            let pillarMesh = MeshResource.generateBox(size: [0.3, 8.0, 0.3], cornerRadius: 0.15)
             let pillarMat = SimpleMaterial(color: UIColor.systemCyan.withAlphaComponent(0.65), isMetallic: false)
             let pillar = ModelEntity(mesh: pillarMesh, materials: [pillarMat])
             pillar.position.y = 4.0
@@ -355,7 +355,7 @@ public class CityMonumentsDiscoveryManager: ObservableObject {
             
         case .mesopotamianGoldenRelic, .ancientCylinderSeal:
             // Ancient Mesopotamian Golden Column with Aura
-            let colMesh = MeshResource.generateCylinder(height: 1.4, radius: 0.35)
+            let colMesh = MeshResource.generateBox(size: [0.7, 1.4, 0.7], cornerRadius: 0.35)
             let colMat = SimpleMaterial(color: UIColor(red: 0.95, green: 0.80, blue: 0.15, alpha: 0.95), isMetallic: true)
             let col = ModelEntity(mesh: colMesh, materials: [colMat])
             col.position.y = 1.4

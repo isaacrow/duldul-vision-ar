@@ -310,3 +310,29 @@ struct RouteOverviewCard: View {
         .overlay(RoundedRectangle(cornerRadius: 22).stroke(Color.white.opacity(0.12), lineWidth: 1))
     }
 }
+
+public struct ShortcutPill: View {
+    public let icon: String
+    public let title: String
+    
+    public init(icon: String, title: String) {
+        self.icon = icon
+        self.title = title
+    }
+    
+    public var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 11))
+                .foregroundColor(.cyan)
+            Text(title)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.white)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(Color.white.opacity(0.08))
+        .cornerRadius(12)
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.12), lineWidth: 1))
+    }
+}
