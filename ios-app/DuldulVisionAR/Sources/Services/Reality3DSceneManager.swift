@@ -188,7 +188,7 @@ public class Reality3DSceneManager {
         let gold = HeritageMaterials.babylonianGold
         
         // Circular Platform
-        let platMesh = MeshResource.generateCylinder(height: 0.2, radius: 2.8)
+        let platMesh = MeshResource.generateBox(size: [5.6, 0.2, 5.6], cornerRadius: 2.7)
         let platform = ModelEntity(mesh: platMesh, materials: [HeritageMaterials.basaltStone])
         platform.position = SIMD3<Float>(0, 0.1, 0)
         parent.addChild(platform)
@@ -208,7 +208,7 @@ public class Reality3DSceneManager {
         parent.addChild(rightDome)
         
         // Central Golden Eternal Flame Beacon
-        let flameMesh = MeshResource.generateCylinder(height: 1.8, radius: 0.16)
+        let flameMesh = MeshResource.generateBox(size: [0.32, 1.8, 0.32], cornerRadius: 0.15)
         let flame = ModelEntity(mesh: flameMesh, materials: [gold])
         flame.position = SIMD3<Float>(0, 1.1, 0)
         parent.addChild(flame)
@@ -256,14 +256,14 @@ public class Reality3DSceneManager {
         parent.addChild(base)
         
         // Leaning Cylindrical Shaft (5° tilt)
-        let shaftMesh = MeshResource.generateCylinder(height: 3.5, radius: 0.42)
+        let shaftMesh = MeshResource.generateBox(size: [0.84, 3.5, 0.84], cornerRadius: 0.41)
         let shaft = ModelEntity(mesh: shaftMesh, materials: [brick])
         shaft.position = SIMD3<Float>(0.16, 2.6, 0)
         shaft.orientation = simd_quatf(angle: 0.087, axis: SIMD3<Float>(0, 0, 1)) // 5 degree tilt
         parent.addChild(shaft)
         
         // Top Crescent & Gallery
-        let galleryMesh = MeshResource.generateCylinder(height: 0.35, radius: 0.5)
+        let galleryMesh = MeshResource.generateBox(size: [1.0, 0.35, 1.0], cornerRadius: 0.49)
         let gallery = ModelEntity(mesh: galleryMesh, materials: [gold])
         gallery.position = SIMD3<Float>(0.32, 4.4, 0)
         parent.addChild(gallery)
@@ -275,14 +275,14 @@ public class Reality3DSceneManager {
         let gold = HeritageMaterials.babylonianGold
         
         // Main Mater Disc
-        let discMesh = MeshResource.generateCylinder(height: 0.05, radius: 0.55)
+        let discMesh = MeshResource.generateBox(size: [1.1, 0.05, 1.1], cornerRadius: 0.54)
         let disc = ModelEntity(mesh: discMesh, materials: [brass])
         disc.position = SIMD3<Float>(0, 0.8, 0)
         disc.orientation = simd_quatf(angle: Float.pi / 4.0, axis: SIMD3<Float>(1, 0, 0))
         parent.addChild(disc)
         
         // Outer Graduated Ring
-        let ringMesh = MeshResource.generateCylinder(height: 0.08, radius: 0.62)
+        let ringMesh = MeshResource.generateBox(size: [1.24, 0.08, 1.24], cornerRadius: 0.61)
         let ring = ModelEntity(mesh: ringMesh, materials: [gold])
         ring.position = SIMD3<Float>(0, 0.8, 0)
         ring.orientation = simd_quatf(angle: Float.pi / 4.0, axis: SIMD3<Float>(1, 0, 0))
@@ -299,7 +299,7 @@ public class Reality3DSceneManager {
     // MARK: - 8. Sumerian Cylinder Seal
     private func buildCylinderSealMesh(into parent: Entity) {
         let gold = HeritageMaterials.babylonianGold
-        let cylinderMesh = MeshResource.generateCylinder(height: 0.8, radius: 0.28)
+        let cylinderMesh = MeshResource.generateBox(size: [0.56, 0.8, 0.56], cornerRadius: 0.27)
         let cylinder = ModelEntity(mesh: cylinderMesh, materials: [gold])
         cylinder.position = SIMD3<Float>(0, 0.6, 0)
         parent.addChild(cylinder)
@@ -310,7 +310,7 @@ public class Reality3DSceneManager {
         let cyan = HeritageMaterials.baghdadTurquoise
         let gold = HeritageMaterials.babylonianGold
         
-        let stemMesh = MeshResource.generateCylinder(height: 1.8, radius: 0.08)
+        let stemMesh = MeshResource.generateBox(size: [0.16, 1.8, 0.16], cornerRadius: 0.07)
         let stem = ModelEntity(mesh: stemMesh, materials: [cyan])
         stem.position = SIMD3<Float>(0, 0.9, 0)
         parent.addChild(stem)
