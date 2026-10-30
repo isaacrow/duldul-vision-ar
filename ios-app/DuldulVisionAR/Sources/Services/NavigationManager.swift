@@ -135,10 +135,11 @@ public class NavigationManager: NSObject, ObservableObject, CLLocationManagerDel
                 let steps: [RouteStep] = mkRoute.steps.compactMap { (step: MKRoute.Step) -> RouteStep? in
                     let text = step.instructions.trimmingCharacters(in: .whitespacesAndNewlines)
                     guard !text.isEmpty else { return nil }
+                    let stepDur = (step.distance / max(1.0, mkRoute.distance)) * mkRoute.expectedTravelTime
                     return RouteStep(
                         instruction: text,
                         distanceMeters: step.distance,
-                        durationSeconds: step.expectedTravelTime,
+                        durationSeconds: stepDur,
                         maneuverType: "turn",
                         streetName: text
                     )
