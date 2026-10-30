@@ -135,17 +135,55 @@ public class IncidentManager: ObservableObject {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
+        let sessionId = UserDefaults.standard.string(forKey: "duldul_anonymous_session_id") ?? UUID().uuidString
         let payload: [String: Any] = [
             "type": type.rawValue,
             "title": title,
             "lat": lat,
-            "lng": lng
+            "lng": lng,
+            "sessionId": sessionId
         ]
         
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: payload)
             URLSession.shared.dataTask(with: request) { _, _, _ in }.resume()
         } catch {}
+    }
+    
+    /// Vote or confirm an existing community incident (Vote +1 for Confirmation, -1 for Dismissal)
+    public func voteIncident(incidentId: String, isConfirm: Bool, completion: ((Bool) -> Void)? = nil) {
+        guard let url = URL(string: "\(serverBaseURL)/api/incidents/\(incidentId)/vote") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let sessionId = UserDefaults.standard.string(forKey: "duldul_anonymous_session_id") ?? UUID().uuidString
+        let payload: [String: Any] = [
+            "vote": isConfirm ? 1 : -1,
+            "sessionId": sessionId
+        ]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+            URLSession.shared.dataTask(with: request) { [weak self] _, response, error in
+                guard let self = self, error == nil else {
+                    DispatchQueue.main.async { completion?(false) }
+                    return
+                }
+                if let http = response as? HTTPURLResponse, (http.statusCode == 200 || http.statusCode == 201) {
+                    DispatchQueue.main.async {
+                        if let index = self.incidents.firstIndex(where: { $0.id == incidentId }) {
+                            self.incidents[index].votes += (isConfirm ? 1 : -1)
+                        }
+                        completion?(true)
+                    }
+                } else {
+                    DispatchQueue.main.async { completion?(false) }
+                }
+            }.resume()
+        } catch {
+            completion?(false)
+        }
     }
     
     // Check if user is near an active hazard (within 500 meters)
