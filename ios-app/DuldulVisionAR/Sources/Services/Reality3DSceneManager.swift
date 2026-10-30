@@ -47,8 +47,45 @@ public class Reality3DSceneManager {
         }
     }
     
+    // MARK: - Load Authentic USDZ Package
+    public func loadUSDZAsset(named filename: String, scale: Float, headingDeg: Double) -> Entity? {
+        var candidateURL = Bundle.main.url(forResource: filename, withExtension: "usdz")
+        
+        if candidateURL == nil {
+            candidateURL = Bundle.main.url(forResource: filename, withExtension: "usdz", subdirectory: "Models")
+        }
+        
+        if candidateURL == nil {
+            let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let candidate = docs.appendingPathComponent("Models").appendingPathComponent("\(filename).usdz")
+            if FileManager.default.fileExists(atPath: candidate.path) {
+                candidateURL = candidate
+            }
+        }
+        
+        guard let url = candidateURL else { return nil }
+        
+        do {
+            let entity = try Entity.load(contentsOf: url)
+            entity.scale = SIMD3<Float>(repeating: scale)
+            let yawRad = Float(headingDeg * .pi / 180.0)
+            entity.orientation = simd_quatf(angle: yawRad, axis: SIMD3<Float>(0, 1, 0))
+            return entity
+        } catch {
+            print("[Reality3DSceneManager] Notice: Could not parse USDZ at \(url): \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
     // MARK: - Generate 3D Model Entity
-    public func createEntity(for modelItem: USDZModelItem, scale: Float = 1.0, headingDeg: Double = 0.0) -> ModelEntity {
+    public func createEntity(for modelItem: USDZModelItem, scale: Float = 1.0, headingDeg: Double = 0.0) -> Entity {
+        // 1. First attempt to load authentic bundled or cached USDZ package
+        if let filename = modelItem.assetFilename, let usdzEntity = loadUSDZAsset(named: filename, scale: modelItem.defaultScale * scale, headingDeg: headingDeg) {
+            usdzEntity.name = modelItem.id
+            return usdzEntity
+        }
+        
+        // 2. Procedural mesh fallback test fixture (clearly documented fallback)
         let root = ModelEntity()
         root.name = modelItem.id
         

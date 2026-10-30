@@ -41,6 +41,7 @@ public struct USDZModelItem: Identifiable, Codable {
     public let defaultScale: Float
     public let defaultAltitudeOffset: Double
     public let proceduralType: ProceduralMeshType
+    public let assetFilename: String?
     public let estimatedPolygons: Int
     public let dimensionsMeters: SIMD3<Float> // Width, Height, Depth
     public let version: String
@@ -57,6 +58,7 @@ public struct USDZModelItem: Identifiable, Codable {
         defaultScale: Float = 1.0,
         defaultAltitudeOffset: Double = 0.0,
         proceduralType: ProceduralMeshType,
+        assetFilename: String? = nil,
         estimatedPolygons: Int,
         dimensionsMeters: SIMD3<Float>,
         version: String = "1.0",
@@ -72,6 +74,7 @@ public struct USDZModelItem: Identifiable, Codable {
         self.defaultScale = defaultScale
         self.defaultAltitudeOffset = defaultAltitudeOffset
         self.proceduralType = proceduralType
+        self.assetFilename = assetFilename
         self.estimatedPolygons = estimatedPolygons
         self.dimensionsMeters = dimensionsMeters
         self.version = version
@@ -100,6 +103,7 @@ public class USDZModelCatalog: ObservableObject {
                 defaultScale: 1.0,
                 defaultAltitudeOffset: 0.0,
                 proceduralType: .basaltLion,
+                assetFilename: "lion_of_babylon",
                 estimatedPolygons: 18500,
                 dimensionsMeters: SIMD3<Float>(1.95, 1.55, 1.0),
                 isArtisticReconstruction: false
@@ -117,6 +121,7 @@ public class USDZModelCatalog: ObservableObject {
                 defaultScale: 0.35,
                 defaultAltitudeOffset: 0.0,
                 proceduralType: .ishtarGateArch,
+                assetFilename: "ishtar_gate",
                 estimatedPolygons: 45000,
                 dimensionsMeters: SIMD3<Float>(14.0, 11.5, 6.0),
                 isArtisticReconstruction: true
@@ -134,6 +139,7 @@ public class USDZModelCatalog: ObservableObject {
                 defaultScale: 0.2,
                 defaultAltitudeOffset: 0.0,
                 proceduralType: .zigguratTiered,
+                assetFilename: "ziggurat_of_ur",
                 estimatedPolygons: 32000,
                 dimensionsMeters: SIMD3<Float>(24.0, 15.0, 20.0),
                 isArtisticReconstruction: false
@@ -151,6 +157,7 @@ public class USDZModelCatalog: ObservableObject {
                 defaultScale: 0.25,
                 defaultAltitudeOffset: 0.0,
                 proceduralType: .alShaheedSplitDome,
+                assetFilename: "al_shaheed_monument",
                 estimatedPolygons: 28000,
                 dimensionsMeters: SIMD3<Float>(18.0, 20.0, 18.0),
                 isArtisticReconstruction: false
@@ -168,6 +175,7 @@ public class USDZModelCatalog: ObservableObject {
                 defaultScale: 0.4,
                 defaultAltitudeOffset: 2.5,
                 proceduralType: .freedomFriezeRelief,
+                assetFilename: nil,
                 estimatedPolygons: 36000,
                 dimensionsMeters: SIMD3<Float>(16.0, 3.2, 0.8),
                 isArtisticReconstruction: false
@@ -185,6 +193,7 @@ public class USDZModelCatalog: ObservableObject {
                 defaultScale: 0.3,
                 defaultAltitudeOffset: 0.0,
                 proceduralType: .leaningMinaret,
+                assetFilename: nil,
                 estimatedPolygons: 24000,
                 dimensionsMeters: SIMD3<Float>(4.5, 22.0, 4.5),
                 isArtisticReconstruction: false
@@ -202,6 +211,7 @@ public class USDZModelCatalog: ObservableObject {
                 defaultScale: 1.5,
                 defaultAltitudeOffset: 0.8,
                 proceduralType: .astrolabeArmillary,
+                assetFilename: "astrolabe",
                 estimatedPolygons: 16000,
                 dimensionsMeters: SIMD3<Float>(0.6, 0.6, 0.15),
                 isArtisticReconstruction: true
@@ -219,6 +229,7 @@ public class USDZModelCatalog: ObservableObject {
                 defaultScale: 2.0,
                 defaultAltitudeOffset: 0.5,
                 proceduralType: .cylinderSeal,
+                assetFilename: nil,
                 estimatedPolygons: 12000,
                 dimensionsMeters: SIMD3<Float>(0.3, 0.5, 0.3),
                 isArtisticReconstruction: false

@@ -5,7 +5,7 @@ import RealityKit
 import Combine
 import SwiftUI
 
-/// Core Geospatial Engine for Duldul: Supporting Mode A (Apple GeoTracking) and Mode B (Fallback ENU + VIO)
+/// Core Geospatial Engine for Duldul: Supporting Mode A (Apple GeoTracking with ARGeoAnchor) and Mode B (Fallback ENU + VIO)
 public class GeospatialEngine: NSObject, ObservableObject, ARSessionDelegate, CLLocationManagerDelegate {
     // MARK: - Published Engine State
     @Published public var activeMode: ARTrackingEngineMode = .modeBGeographicFallbackENU
@@ -29,6 +29,11 @@ public class GeospatialEngine: NSObject, ObservableObject, ARSessionDelegate, CL
     @Published public var activeNearbyItems: [GeoARItem] = []
     @Published public var selectedPlacement: GeospatialPlacementModel?
     @Published public var statusMessageArabic: String = "تهيئة محرك التموضع الجغرافي..."
+    
+    // Session Reference Origin (VIO Stability Fix)
+    public private(set) var sessionOriginCoordinate: CLLocationCoordinate2D?
+    public private(set) var sessionOriginAltitude: Double = 0.0
+    private var isAnchorsSpawned: Bool = false
     
     // Low-Level References
     public var arView: ARView?
@@ -129,11 +134,22 @@ public class GeospatialEngine: NSObject, ObservableObject, ARSessionDelegate, CL
         arView?.session.pause()
     }
     
+    // MARK: - Manual Sensor & Origin Recalibration
     public func recalibrateSensors() {
         guard let arView = self.arView else { return }
+        
+        for anchor in spawned3DAnchors {
+            arView.scene.removeAnchor(anchor)
+        }
+        spawned3DAnchors.removeAll()
+        isAnchorsSpawned = false
+        
         startFallbackWorldTracking(in: arView)
+        
         if let userCoord = self.userCoordinate {
-            refreshPlacements(userCoord: userCoord)
+            self.sessionOriginCoordinate = userCoord
+            self.sessionOriginAltitude = self.userAltitude
+            spawnPhysical3DAnchors()
         }
     }
     
@@ -168,7 +184,7 @@ public class GeospatialEngine: NSObject, ObservableObject, ARSessionDelegate, CL
     public func session(_ session: ARSession, cameraDidChangeTrackingState camera: ARCamera) {
         switch camera.trackingState {
         case .normal:
-            statusMessageArabic = "تتبع مكاني 6DoF عالي الاستقرار"
+            statusMessageArabic = "تتبع مكاني 6DoF عالي الاستقرار (VIO ثابت)"
         case .limited(let reason):
             switch reason {
             case .excessiveMotion:
@@ -184,6 +200,29 @@ public class GeospatialEngine: NSObject, ObservableObject, ARSessionDelegate, CL
             }
         case .notAvailable:
             statusMessageArabic = "حساسات التتبع المكاني غير متاحة حالياً"
+        }
+    }
+    
+    // MARK: - Mode A: Apple ARGeoAnchor Delegate Handling
+    public func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
+        guard let arView = self.arView else { return }
+        let modelCatalog = USDZModelCatalog()
+        
+        for anchor in anchors {
+            if let geoAnchor = anchor as? ARGeoAnchor {
+                let anchorEntity = AnchorEntity(anchor: geoAnchor)
+                if let placement = renderedPlacements.first(where: { $0.id == geoAnchor.name }),
+                   let modelItem = modelCatalog.findModel(byId: placement.assetId) {
+                    let entity = Reality3DSceneManager.shared.createEntity(
+                        for: modelItem,
+                        scale: placement.scale,
+                        headingDeg: placement.heading
+                    )
+                    anchorEntity.addChild(entity)
+                }
+                arView.scene.addAnchor(anchorEntity)
+                spawned3DAnchors.append(anchorEntity)
+            }
         }
     }
     
@@ -203,8 +242,15 @@ public class GeospatialEngine: NSObject, ObservableObject, ARSessionDelegate, CL
         // Check Apple GeoTracking availability for this coordinate
         checkAppleGeoTrackingAvailability(at: loc.coordinate)
         
-        // Refresh 3D Anchors & Calculations
-        refreshPlacements(userCoord: loc.coordinate)
+        // Update HUD distances & azimuths continuously without destroying 3D anchors
+        updateHUDDistanceMetrics(userCoord: loc.coordinate)
+        
+        // Spawn 3D anchors ONCE when stable origin is acquired, avoiding GPS jitter destroying VIO
+        if !isAnchorsSpawned && loc.horizontalAccuracy > 0 && loc.horizontalAccuracy <= 25.0 {
+            self.sessionOriginCoordinate = loc.coordinate
+            self.sessionOriginAltitude = loc.altitude
+            spawnPhysical3DAnchors()
+        }
     }
     
     public func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
@@ -212,26 +258,22 @@ public class GeospatialEngine: NSObject, ObservableObject, ARSessionDelegate, CL
         self.isHeadingCalibrating = (newHeading.headingAccuracy < 0 || newHeading.headingAccuracy > 25.0)
     }
     
-    // MARK: - Refresh Geographic Anchors & Entities
+    // MARK: - Placements Synchronization
     public func syncPlacements(with list: [GeospatialPlacementModel]) {
         self.renderedPlacements = list
         if let userLoc = self.userCoordinate {
-            refreshPlacements(userCoord: userLoc)
+            updateHUDDistanceMetrics(userCoord: userLoc)
+            if !isAnchorsSpawned {
+                self.sessionOriginCoordinate = userLoc
+                self.sessionOriginAltitude = self.userAltitude
+                spawnPhysical3DAnchors()
+            }
         }
     }
     
-    private func refreshPlacements(userCoord: CLLocationCoordinate2D) {
-        guard let arView = self.arView else { return }
-        
-        // Remove existing anchors
-        for anchor in spawned3DAnchors {
-            arView.scene.removeAnchor(anchor)
-        }
-        spawned3DAnchors.removeAll()
-        
+    // MARK: - Continuous HUD Metrics Update (Lightweight & Jitter-Free)
+    private func updateHUDDistanceMetrics(userCoord: CLLocationCoordinate2D) {
         var hudItems: [GeoARItem] = []
-        let modelCatalog = USDZModelCatalog()
-        
         for placement in renderedPlacements {
             let distMeters = GeoMath.haversineDistance(from: userCoord, to: placement.coordinate)
             let azimuth = GeoMath.calculateAzimuth(from: userCoord, to: placement.coordinate)
@@ -251,55 +293,68 @@ public class GeospatialEngine: NSObject, ObservableObject, ARSessionDelegate, CL
                 metadata: "\(placement.verificationStatus.rawValue) • دقة ±\(String(format: "%.1f", placement.positioningAccuracy))م"
             )
             hudItems.append(item)
-            
-            // If placement is within physical RealityKit 3D anchor range (< 120m)
-            if distMeters <= 120.0 {
-                let enu = GeoMath.wgs84ToLocalENU(
-                    target: placement.coordinate,
-                    targetAltitude: placement.altitude,
-                    reference: userCoord,
-                    referenceAltitude: self.userAltitude
-                )
-                let rkPos = GeoMath.enuToRealityKitPosition(east: enu.east, north: enu.north, up: enu.up)
-                
-                var transform = matrix_identity_float4x4
-                transform.columns.3 = SIMD4<Float>(rkPos.x, rkPos.y, rkPos.z, 1.0)
-                
-                let anchor = AnchorEntity(world: transform)
-                
-                // Fetch model from catalog or use fallback pin
-                if let modelItem = modelCatalog.findModel(byId: placement.assetId) {
-                    let entity = Reality3DSceneManager.shared.createEntity(
-                        for: modelItem,
-                        scale: placement.scale,
-                        headingDeg: placement.heading
-                    )
-                    anchor.addChild(entity)
-                } else {
-                    let genericItem = USDZModelItem(
-                        id: "fallback-pin",
-                        name: "Spatial Pin",
-                        nameArabic: placement.titleArabic,
-                        category: .modernMonuments,
-                        historicalSummary: "",
-                        author: "",
-                        proceduralType: .genericPin,
-                        estimatedPolygons: 1200,
-                        dimensionsMeters: SIMD3<Float>(0.6, 2.0, 0.6)
-                    )
-                    let entity = Reality3DSceneManager.shared.createEntity(for: genericItem, scale: placement.scale)
-                    anchor.addChild(entity)
-                }
-                
-                arView.scene.addAnchor(anchor)
-                spawned3DAnchors.append(anchor)
-            }
         }
         
         DispatchQueue.main.async {
             self.activeNearbyItems = hudItems.sorted { $0.distanceMeters < $1.distanceMeters }
             self.recomputeScreenProjections()
         }
+    }
+    
+    // MARK: - Spawn Physical 3D Anchors (Called Once at Session Origin)
+    private func spawnPhysical3DAnchors() {
+        guard let arView = self.arView, let origin = self.sessionOriginCoordinate else { return }
+        
+        // Remove existing anchors cleanly
+        for anchor in spawned3DAnchors {
+            arView.scene.removeAnchor(anchor)
+        }
+        spawned3DAnchors.removeAll()
+        
+        let modelCatalog = USDZModelCatalog()
+        
+        if activeMode == .modeAAppleGeoTracking {
+            // Mode A: Add ARGeoAnchor directly to ARKit session
+            for placement in renderedPlacements {
+                let geoAnchor = ARGeoAnchor(name: placement.id, coordinate: placement.coordinate, altitude: placement.altitude)
+                arView.session.add(anchor: geoAnchor)
+            }
+        } else {
+            // Mode B: Local ENU Transformation relative to Session Reference Origin
+            for placement in renderedPlacements {
+                let distMeters = GeoMath.haversineDistance(from: origin, to: placement.coordinate)
+                
+                // Only place in RealityKit 3D scene if within proximity (< 120m)
+                if distMeters <= 120.0 {
+                    let enu = GeoMath.wgs84ToLocalENU(
+                        target: placement.coordinate,
+                        targetAltitude: placement.altitude,
+                        reference: origin,
+                        referenceAltitude: self.sessionOriginAltitude
+                    )
+                    let rkPos = GeoMath.enuToRealityKitPosition(east: enu.east, north: enu.north, up: enu.up)
+                    
+                    var transform = matrix_identity_float4x4
+                    transform.columns.3 = SIMD4<Float>(rkPos.x, rkPos.y, rkPos.z, 1.0)
+                    
+                    let anchor = AnchorEntity(world: transform)
+                    
+                    if let modelItem = modelCatalog.findModel(byId: placement.assetId) {
+                        let entity = Reality3DSceneManager.shared.createEntity(
+                            for: modelItem,
+                            scale: placement.scale,
+                            headingDeg: placement.heading
+                        )
+                        anchor.addChild(entity)
+                    }
+                    
+                    arView.scene.addAnchor(anchor)
+                    spawned3DAnchors.append(anchor)
+                }
+            }
+        }
+        
+        self.isAnchorsSpawned = true
     }
     
     // MARK: - Recompute Screen Projections
@@ -331,7 +386,6 @@ public class GeospatialEngine: NSObject, ObservableObject, ARSessionDelegate, CL
                 item.offscreenEdge = nil
             }
             
-            // Relative bearing
             var rel = item.azimuthDegrees - heading
             while rel > 180.0 { rel -= 360.0 }
             while rel < -180.0 { rel += 360.0 }
