@@ -249,6 +249,7 @@
 				AA0100172C00010000000017 /* MonumentDiscoveryAlertView.swift in Sources */,
 				AA0100182C00010000000018 /* DiscoveryCelebrationModal.swift in Sources */,
 				AA0100192C00010000000019 /* MonumentJournalView.swift in Sources */,
+				AA0100202C00010000000021 /* AppConfig.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
