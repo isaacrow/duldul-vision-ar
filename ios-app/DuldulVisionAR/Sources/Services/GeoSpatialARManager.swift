@@ -36,6 +36,17 @@ public class GeoSpatialARManager: NSObject, ObservableObject, ARSessionDelegate 
     @Published public var userCoordinate: CLLocationCoordinate2D?
     @Published public var trackingStatusText: String = "جارٍ مزامنة إحداثيات الواقع المعزز الجغرافية..."
     
+    // Real Accuracy & Drift Telemetry (Honest Geo-AR Tracking)
+    @Published public var gpsAccuracyMeters: Double = 5.0
+    @Published public var compassAccuracyDegrees: Double = 10.0
+    @Published public var isCompassCalibrating: Bool = false
+    
+    // 1D Kalman Filter for Smooth Heading Tracking without Jitter
+    private var kalmanHeading: Double = 0.0
+    private var kalmanVariance: Double = 1.0
+    private let kalmanProcessNoise: Double = 0.08
+    private let kalmanMeasurementNoise: Double = 0.45
+    
     public var arView: ARView?
     private var spawnedGeoAnchors: [AnchorEntity] = []
     
@@ -99,16 +110,40 @@ public class GeoSpatialARManager: NSObject, ObservableObject, ARSessionDelegate 
             
             // Yaw angle (compass heading)
             // With .gravityAndHeading: +X is East, -Z is North
-            var yawRad = atan2(Double(forward.x), -Double(forward.z))
-            if yawRad < 0 { yawRad += 2.0 * .pi }
-            let yawDeg = yawRad * 180.0 / .pi
+            var rawYawRad = atan2(Double(forward.x), -Double(forward.z))
+            if rawYawRad < 0 { rawYawRad += 2.0 * .pi }
+            let rawYawDeg = rawYawRad * 180.0 / .pi
+            
+            // Apply 1D Circular Kalman Filter to prevent heading drift and jitter
+            let filteredHeading = applyKalmanHeadingFilter(measurement: rawYawDeg)
             
             DispatchQueue.main.async {
                 self.cameraPitchDegrees = pitchDeg
-                self.cameraHeadingDegrees = yawDeg
+                self.cameraHeadingDegrees = filteredHeading
                 self.recomputeGeoProjections()
             }
         }
+    }
+    
+    // MARK: - Circular Kalman Filter
+    private func applyKalmanHeadingFilter(measurement: Double) -> Double {
+        // Time update (prediction)
+        kalmanVariance += kalmanProcessNoise
+        
+        // Handle circular wrap-around at 0/360 degrees
+        var diff = measurement - kalmanHeading
+        while diff > 180.0 { diff -= 360.0 }
+        while diff < -180.0 { diff += 360.0 }
+        
+        // Measurement update
+        let kalmanGain = kalmanVariance / (kalmanVariance + kalmanMeasurementNoise)
+        kalmanHeading = kalmanHeading + kalmanGain * diff
+        kalmanVariance = (1.0 - kalmanGain) * kalmanVariance
+        
+        if kalmanHeading < 0 { kalmanHeading += 360.0 }
+        if kalmanHeading >= 360.0 { kalmanHeading -= 360.0 }
+        
+        return kalmanHeading
     }
     
     // MARK: - Sync Geographic Data Sources

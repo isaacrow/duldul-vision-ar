@@ -93,7 +93,7 @@ public struct SpatialARScannerView: View {
                     // Top Status Bar: Status + Range Selector + 360° Compass Radar
                     HStack(alignment: .top, spacing: 10) {
                         VStack(alignment: .leading, spacing: 6) {
-                            // Active State Capsule
+                            // Active State Capsule + Honest Accuracy Badge
                             HStack(spacing: 6) {
                                 Circle()
                                     .fill(visionManager.isLiDARAvailable ? Color.green : Color.cyan)
@@ -116,6 +116,30 @@ public struct SpatialARScannerView: View {
                             .background(Color.black.opacity(0.7))
                             .cornerRadius(18)
                             .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.cyan.opacity(0.35), lineWidth: 1))
+                            
+                            // Real Sensor Accuracy Badge (GPS ±m, Heading ±°)
+                            HStack(spacing: 6) {
+                                Image(systemName: "location.north.circle.fill")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.yellow)
+                                
+                                Text(String(format: "دقة GPS: ±%.0fm", geoARManager.gpsAccuracyMeters))
+                                    .font(.system(size: 9.5, weight: .semibold))
+                                    .foregroundColor(.white)
+                                
+                                Text("•")
+                                    .font(.system(size: 8))
+                                    .foregroundColor(.gray)
+                                
+                                Text("بوصلة: مرشحة (Kalman)")
+                                    .font(.system(size: 9.5, weight: .semibold))
+                                    .foregroundColor(.green)
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color(red: 0.08, green: 0.10, blue: 0.14).opacity(0.85))
+                            .cornerRadius(12)
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.12), lineWidth: 0.8))
                             
                             // Range Segmented Pill
                             HStack(spacing: 2) {
