@@ -43,7 +43,7 @@ public struct CommunityIncident: Identifiable, Codable {
     public let title: String
     public let lat: Double
     public let lng: Double
-    public let votes: Int
+    public var votes: Int
     public let timestamp: Date
     
     public init(
