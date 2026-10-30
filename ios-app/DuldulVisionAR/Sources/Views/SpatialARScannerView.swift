@@ -292,7 +292,9 @@ public struct SpatialARScannerView: View {
     }
     
     private func syncAllDataSources() {
-        let userLoc = navManager.userLocation ?? CLLocationCoordinate2D(latitude: 33.3152, longitude: 44.3661)
+        guard let userLoc = navManager.userLocation else {
+            return
+        }
         discoveryManager.updateLocations(userLoc: userLoc, arView: geoARManager.arView)
         geoARManager.updateGeographicWorld(
             userLoc: userLoc,

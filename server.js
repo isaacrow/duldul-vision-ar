@@ -514,22 +514,13 @@ app.get('/api/health', (req, res) => {
 const { DuldulEngine } = require('./routing-engine/duldul_engine');
 const { ViterbiMapMatcher } = require('./routing-engine/viterbi_matcher');
 const { AiPlacesEngine } = require('./routing-engine/ai_places_engine');
-const { WazeReverseEngine } = require('./routing-engine/waze_reverse_engine');
-const { GmapsReverseEngine } = require('./routing-engine/gmaps_reverse_engine');
 const { SpatialCatalogEngine, arToGeoCoordinates } = require('./routing-engine/spatial_catalog_engine');
 const aiPlacesEngine = new AiPlacesEngine();
 
-// Initialize Autonomous Engines & Reverse Engineering Modules
+// Initialize Autonomous Routing & Spatial Engines
 const duldulEngine = new DuldulEngine();
 const viterbiMatcher = new ViterbiMapMatcher(duldulEngine.network);
-const wazeReverseEngine = new WazeReverseEngine();
-const gmapsReverseEngine = new GmapsReverseEngine();
 const spatialCatalogEngine = new SpatialCatalogEngine();
-
-// Inject reverse-engineered Waze live telemetry into Duldul's routing graph
-try {
-  duldulEngine.applyCrowdsourcedIncidents(wazeReverseEngine.getLiveIncidents());
-} catch (e) {}
 
 const BAGHDAD_BRIDGES = [
   { id: 'br-jadiriya', name_ar: 'جسر الجادرية', name_en: 'Jadiriya Bridge', lat: 33.2764, lng: 44.3811, connects: 'الكرادة ↔ السيدية' },
@@ -762,6 +753,41 @@ app.get('/api/places', async (req, res) => {
   const lng = req.query.lng ? parseFloat(req.query.lng) : null;
   const limit = req.query.limit ? Math.min(50, parseInt(req.query.limit, 10)) : 20;
 
+  // Strategy A: Self-hosted Photon OpenStreetMap Geocoder (if configured)
+  const photonBase = process.env.PHOTON_BACKEND_URL;
+  if (photonBase && q.trim()) {
+    try {
+      let photonUrl = `${photonBase}/api?q=${encodeURIComponent(q)}&limit=${limit}&lang=ar`;
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        photonUrl += `&lat=${lat}&lon=${lng}`;
+      }
+      const resp = await fetch(photonUrl);
+      if (resp.ok) {
+        const photonJson = await resp.json();
+        if (photonJson.features && photonJson.features.length > 0) {
+          const photonPlaces = photonJson.features.map((f, i) => {
+            const p = f.properties || {};
+            const coords = f.geometry ? f.geometry.coordinates : [44.3661, 33.3152];
+            return {
+              id: `osm-${p.osm_id || i}`,
+              name_ar: p.name || q,
+              name_en: p.name || q,
+              city: p.city || p.state || 'العراق',
+              category: p.osm_value || 'poi',
+              lat: coords[1],
+              lng: coords[0],
+              source: 'OpenStreetMap Photon Geocoder'
+            };
+          });
+          return res.json(photonPlaces);
+        }
+      }
+    } catch (photonErr) {
+      console.warn('Photon upstream geocoder error, falling back to local places engine:', photonErr.message);
+    }
+  }
+
+  // Strategy B: Curated Iraqi Civic & Landmark Graph
   try {
     const results = await aiPlacesEngine.search(q, lat, lng, limit);
     return res.json(results);
@@ -961,7 +987,72 @@ app.get('/api/route', async (req, res) => {
     }
   }
 
-  // Strategy B: OpenStreetMap / OSRM (100% Free & Open-Source)
+  // Strategy B: OpenStreetMap Valhalla Self-Hosted (Primary Free & Open-Source)
+  const valhallaBase = process.env.VALHALLA_BACKEND_URL;
+  if (valhallaBase) {
+    try {
+      const valhallaPayload = {
+        locations: [
+          { lat: startLat, lon: startLng },
+          { lat: endLat, lon: endLng }
+        ],
+        costing: 'auto',
+        directions_options: { language: lang === 'en' ? 'en-US' : 'ar-XA', units: 'kilometers' },
+        format: 'osrm'
+      };
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      const resp = await fetch(`${valhallaBase}/route`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(valhallaPayload),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.routes && data.routes.length > 0) {
+          const routes = data.routes.map((r, idx) => {
+            const distKm = (r.distance / 1000).toFixed(1);
+            const durationMin = Math.max(1, Math.round(r.duration / 60));
+            const label = idx === 0 ? (lang === 'en' ? 'Standard Route (Valhalla)' : 'المسار القياسي (Valhalla)') : (lang === 'en' ? `Alternative ${idx}` : `مسار بديل ${idx}`);
+
+            return {
+              id: `route-${idx}`,
+              label,
+              isPrimary: idx === 0,
+              distanceKm: Number(distKm),
+              durationMin,
+              typicalDurationMin: durationMin,
+              dominantCongestion: 'unavailable',
+              geometry: r.geometry,
+              steps: (r.legs && r.legs[0] && r.legs[0].steps) ? r.legs[0].steps.map(s => ({
+                instruction: s.maneuver.instruction || translateManeuver(s.maneuver.type, s.maneuver.modifier, lang, s.name),
+                distanceMeters: Math.round(s.distance),
+                durationSec: Math.round(s.duration),
+                location: [s.maneuver.location[1], s.maneuver.location[0]]
+              })) : []
+            };
+          });
+
+          return res.json({
+            status: 'ok',
+            provider: 'OpenStreetMap / Valhalla (Self-Hosted)',
+            profile: 'valhalla/auto',
+            trafficState: 'none',
+            trafficSource: 'Valhalla OpenStreetMap graph with elevation',
+            routes
+          });
+        }
+      }
+    } catch (valhallaErr) {
+      console.warn('Valhalla upstream routing error, attempting OSRM fallback:', valhallaErr.message);
+    }
+  }
+
+  // Strategy C: OpenStreetMap / OSRM (100% Free & Open-Source)
   try {
     const osrmBase = process.env.OSRM_BACKEND_URL || 'https://router.project-osrm.org';
     const osrmUrl = `${osrmBase}/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson&steps=true&alternatives=true`;

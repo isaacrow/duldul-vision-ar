@@ -50,8 +50,8 @@ public class SpatialCatalogService: ObservableObject {
         category: SpatialCategory,
         confidence: Float,
         position: SIMD3<Float>,
-        lat: Double = 33.3152,
-        lng: Double = 44.3661
+        lat: Double,
+        lng: Double
     ) {
         let anchor = SpatialAnchorModel(
             title: title,

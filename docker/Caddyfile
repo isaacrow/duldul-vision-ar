@@ -1,0 +1,29 @@
+{
+    email admin@duldul.iq
+}
+
+{$DOMAIN:api.duldul.iq} {
+    encode gzip zstd
+
+    # Route API requests to Node backend
+    reverse_proxy duldul-api:3000
+
+    # Dedicated routing forward to Valhalla
+    handle_path /valhalla/* {
+        reverse_proxy valhalla:8002
+    }
+
+    # Dedicated geocoding forward to Photon
+    handle_path /photon/* {
+        reverse_proxy photon:2322
+    }
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Access-Control-Allow-Origin "*"
+        Access-Control-Allow-Methods "GET, POST, OPTIONS"
+        Access-Control-Allow-Headers "Content-Type, Authorization"
+    }
+}

@@ -118,8 +118,12 @@ public class IncidentManager: ObservableObject {
     }
     
     public func reportIncident(type: IncidentType, title: String, userLocation: CLLocationCoordinate2D?) {
-        let lat = userLocation?.latitude ?? 33.3152
-        let lng = userLocation?.longitude ?? 44.3661
+        guard let location = userLocation else {
+            print("[IncidentManager] Cannot report incident without valid GPS location.")
+            return
+        }
+        let lat = location.latitude
+        let lng = location.longitude
         
         let newIncident = CommunityIncident(type: type, title: title, lat: lat, lng: lng)
         DispatchQueue.main.async {

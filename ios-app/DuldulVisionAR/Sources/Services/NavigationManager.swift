@@ -107,7 +107,11 @@ public class NavigationManager: NSObject, ObservableObject, CLLocationManagerDel
         destName: String,
         completion: @escaping (Bool) -> Void
     ) {
-        let start = userLocation ?? CLLocationCoordinate2D(latitude: 33.3152, longitude: 44.3661) // Default Baghdad
+        guard let start = userLocation else {
+            print("[NavigationManager] Cannot calculate route without active GPS user location.")
+            completion(false)
+            return
+        }
         
         let urlString = "\(serverBaseURL)/api/route?startLat=\(start.latitude)&startLng=\(start.longitude)&endLat=\(destCoords.latitude)&endLng=\(destCoords.longitude)"
         guard let url = URL(string: urlString) else {
