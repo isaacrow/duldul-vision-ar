@@ -791,56 +791,27 @@ app.get('/api/places/ai-search', async (req, res) => {
   });
 });
 
-// ---------------- Reverse-Engineered Live Telemetry & Geocoding Endpoints ---------------- //
-
-// Reverse-Engineered Google Maps RPC Geocoder Endpoint
+// ---------------- Reverse-Engineered Live Telemetry & Geocoding Endpoints (DEPRECATED & DISABLED) ---------------- //
 app.get('/api/reverse-engine/gmaps-search', async (req, res) => {
-  const q = req.query.q || '';
-  if (!q.trim()) {
-    return res.json({ status: 'ok', query: '', count: 0, results: [] });
-  }
-  const results = await gmapsReverseEngine.searchPlace(q);
-  res.json({
-    status: 'ok',
-    engine: 'Google Maps RPC Protocol Extractor',
-    query: q,
-    count: results.length,
-    results
-  });
+  res.status(410).json({ error: 'Endpoint removed in accordance with strict terms-of-service compliance. Use /api/places.' });
 });
 
-// Reverse-Engineered Waze Live Feed & Map Tile Endpoints
 app.get('/api/waze/live-feed', (req, res) => {
-  res.json({
-    status: 'ok',
-    protocol: 'Waze LiveMap Wire Protocol (ROW/Iraq)',
-    tileTemplate: wazeReverseEngine.getWazeTileTemplate(),
-    stats: wazeReverseEngine.getStats(),
-    alerts: wazeReverseEngine.getLiveIncidents()
-  });
+  res.status(410).json({ error: 'Endpoint removed in accordance with strict terms-of-service compliance. Use OpenStreetMap & community incidents.' });
 });
 
-// Comprehensive Reverse Engineering System Status & Diagnostics
 app.get('/api/reverse-engine/status', (req, res) => {
   res.json({
     status: 'ok',
-    product: 'دلدل (Duldul Reverse Engineering Stack)',
-    wazeLiveMap: {
-      status: 'operational',
-      tileLayerUrl: wazeReverseEngine.getWazeTileTemplate(),
-      activeIncidents: wazeReverseEngine.getLiveIncidents().length,
-      stats: wazeReverseEngine.getStats()
-    },
-    googleMapsRpc: {
-      status: 'operational',
-      stats: gmapsReverseEngine.getStats()
-    },
+    product: 'دلدل (Duldul Independent Stack)',
+    architecture: 'OpenStreetMap + Community crowdsourced intelligence',
+    compliance: '100% TOS-compliant, zero scraped third-party feeds',
     spatialCatalog: {
       status: 'operational',
       stats: spatialCatalogEngine.getStats()
     },
     routingEngine: {
-      algorithm: 'Duldul Multi-Criterion Pareto A* with Waze Dynamic Turn & Congestion Penalty Formulation',
+      algorithm: 'Duldul Multi-Criterion Pareto A* with Iraq Road Topology',
       bridgesMonitored: BAGHDAD_BRIDGES.length,
       graphNodes: duldulEngine.network.nodes.size,
       graphEdges: duldulEngine.network.edges.length
@@ -1029,7 +1000,7 @@ app.get('/api/route', async (req, res) => {
         if (routes.length === 1) {
           try {
             duldulEngine.updateBridgeConditions(BAGHDAD_BRIDGES);
-            duldulEngine.applyCrowdsourcedIncidents([...incidents, ...wazeReverseEngine.getLiveIncidents()]);
+            duldulEngine.applyCrowdsourcedIncidents(incidents);
             const duldulRoutes = duldulEngine.findEveryRoute(startLat, startLng, endLat, endLng);
             if (Array.isArray(duldulRoutes) && duldulRoutes.length > 1) {
               const alt = duldulRoutes[1];
@@ -1064,7 +1035,7 @@ app.get('/api/route', async (req, res) => {
   // Strategy C: Autonomous Duldul Pareto Routing Engine (Zero-Latency Local Fallback)
   try {
     duldulEngine.updateBridgeConditions(BAGHDAD_BRIDGES);
-    duldulEngine.applyCrowdsourcedIncidents([...incidents, ...wazeReverseEngine.getLiveIncidents()]);
+    duldulEngine.applyCrowdsourcedIncidents(incidents);
     const duldulRoutes = duldulEngine.findEveryRoute(startLat, startLng, endLat, endLng);
     if (Array.isArray(duldulRoutes) && duldulRoutes.length > 0) {
       duldulRoutes.forEach(applyCommunityTrafficEstimate);
