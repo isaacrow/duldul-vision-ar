@@ -3,92 +3,62 @@ import SwiftUI
 public struct ContentView: View {
     @State private var selectedTab: Int = 0
     @EnvironmentObject var navManager: NavigationManager
-    @EnvironmentObject var incidentManager: IncidentManager
+    @EnvironmentObject var persistenceService: GeospatialPersistenceService
+    @EnvironmentObject var modelCatalog: USDZModelCatalog
+    @EnvironmentObject var landmarksService: IraqLandmarksService
     @EnvironmentObject var discoveryManager: CityMonumentsDiscoveryManager
     
     public init() {}
     
     public var body: some View {
         ZStack(alignment: .bottom) {
-            // Mode Views
+            // Primary Application Tab Screens
             Group {
                 switch selectedTab {
                 case 0:
                     MapNavigationView()
                 case 1:
-                    SpatialARScannerView()
+                    ExploreLandmarksView()
                 case 2:
-                    BridgesRadarSheet()
+                    GeospatialARCameraView()
                 case 3:
-                    MonumentJournalView()
+                    ModelCatalogView()
+                case 4:
+                    UserProfileView()
                 default:
                     MapNavigationView()
                 }
             }
             .edgesIgnoringSafeArea(.all)
             
-            // Proximity Hazard Alert Toast Banner (e.g. Speed Camera / Checkpoint ahead)
-            if let alert = incidentManager.nearbyAlert {
-                VStack {
-                    HStack(spacing: 12) {
-                        Image(systemName: alert.type.iconName)
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(.orange)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("تنبيه: \(alert.title)")
-                                .font(.system(size: 14, weight: .black))
-                                .foregroundColor(.white)
-                            Text("على بعد أقل من 400 متر على مسارك")
-                                .font(.system(size: 11))
-                                .foregroundColor(.gray)
-                        }
-                        Spacer()
-                    }
-                    .padding(14)
-                    .background(Color(red: 0.12, green: 0.15, blue: 0.22).opacity(0.96))
-                    .cornerRadius(18)
-                    .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.orange.opacity(0.4), lineWidth: 1.5))
-                    .shadow(color: Color.black.opacity(0.5), radius: 16, y: 8)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 14)
-                    
-                    Spacer()
-                }
-                .transition(.move(edge: .top).combined(with: .opacity))
-                .animation(.spring(response: 0.35, dampingFraction: 0.8), value: incidentManager.nearbyAlert?.id)
-            }
-            
-            // Ultra-Clean Native Tab Bar Switcher (Hidden during active navigation for full immersion)
+            // Native Tab Bar Switcher (Hidden during active driving navigation)
             if !navManager.isNavigating {
-                HStack(spacing: 12) {
-                    TabButton(index: 0, title: "الخريطة والملاحة", icon: "map.fill", selectedTab: $selectedTab)
-                    TabButton(index: 1, title: "ماسح AR", icon: "camera.viewfinder", selectedTab: $selectedTab)
-                    TabButton(index: 2, title: "رادار الجسور", icon: "bridge", selectedTab: $selectedTab)
-                    TabButton(index: 3, title: "سجل المعالم", icon: "sparkles", selectedTab: $selectedTab)
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(Color(red: 0.06, green: 0.08, blue: 0.12).opacity(0.92))
-                .cornerRadius(26)
-                .overlay(RoundedRectangle(cornerRadius: 26).stroke(Color.white.opacity(0.12), lineWidth: 1))
-                .shadow(color: Color.black.opacity(0.4), radius: 20, y: 10)
-                .padding(.bottom, 8)
-            }
-            
-            // Celebration Modal when User Discovers a Monument or Artifact
-            if discoveryManager.showDiscoveryCelebration, let mon = discoveryManager.newlyDiscoveredMonument {
-                DiscoveryCelebrationModal(monument: mon) {
-                    discoveryManager.showDiscoveryCelebration = false
-                }
-                .transition(.opacity)
-                .zIndex(999)
+                nativeTabBar
             }
         }
     }
+    
+    // MARK: - 5 Primary Tabs
+    private var nativeTabBar: some View {
+        HStack(spacing: 8) {
+            DuldulTabItem(index: 0, title: "الخريطة", icon: "map.fill", selectedTab: $selectedTab)
+            DuldulTabItem(index: 1, title: "الاستكشاف", icon: "safari.fill", selectedTab: $selectedTab)
+            DuldulTabItem(index: 2, title: "الواقع المعزز", icon: "camera.viewfinder", selectedTab: $selectedTab)
+            DuldulTabItem(index: 3, title: "النماذج 3D", icon: "cube.fill", selectedTab: $selectedTab)
+            DuldulTabItem(index: 4, title: "ملفي", icon: "person.fill", selectedTab: $selectedTab)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .background(Color(red: 0.06, green: 0.08, blue: 0.12).opacity(0.94))
+        .cornerRadius(24)
+        .overlay(RoundedRectangle(cornerRadius: 24).stroke(Color.white.opacity(0.12), lineWidth: 1))
+        .shadow(color: Color.black.opacity(0.45), radius: 18, y: 8)
+        .padding(.horizontal, 12)
+        .padding(.bottom, 8)
+    }
 }
 
-struct TabButton: View {
+struct DuldulTabItem: View {
     let index: Int
     let title: String
     let icon: String
@@ -102,20 +72,19 @@ struct TabButton: View {
             gen.impactOccurred()
             selectedTab = index
         }) {
-            HStack(spacing: 6) {
+            VStack(spacing: 3) {
                 Image(systemName: icon)
-                    .font(.system(size: 13, weight: .bold))
-                if isSelected {
-                    Text(title)
-                        .font(.system(size: 11.5, weight: .heavy))
-                }
+                    .font(.system(size: isSelected ? 17 : 15, weight: isSelected ? .bold : .medium))
+                    .foregroundColor(isSelected ? .cyan : .gray)
+                
+                Text(title)
+                    .font(.system(size: 10, weight: isSelected ? .bold : .medium))
+                    .foregroundColor(isSelected ? .white : .gray)
             }
-            .foregroundColor(isSelected ? .white : .gray)
-            .padding(.horizontal, isSelected ? 12 : 7)
-            .padding(.vertical, 8)
-            .background(isSelected ? Color.blue.opacity(0.65) : Color.clear)
-            .cornerRadius(18)
-            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 4)
+            .background(isSelected ? Color.cyan.opacity(0.12) : Color.clear)
+            .cornerRadius(12)
         }
     }
 }

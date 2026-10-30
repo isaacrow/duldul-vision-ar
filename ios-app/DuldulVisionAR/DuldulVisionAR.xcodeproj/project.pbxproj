@@ -35,6 +35,18 @@
 		AA0100192C00010000000019 /* MonumentJournalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200202C00010000000020 /* MonumentJournalView.swift */; };
 		AA0100222C00010000000023 /* PlacesSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200232C00010000000023 /* PlacesSearchService.swift */; };
 		AA0100242C00010000000025 /* TelemetrySpeedService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200252C00010000000025 /* TelemetrySpeedService.swift */; };
+		AA0100302C00010000000030 /* GeospatialPlacementModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200302C00010000000030 /* GeospatialPlacementModel.swift */; };
+		AA0100312C00010000000031 /* USDZModelCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200312C00010000000031 /* USDZModelCatalog.swift */; };
+		AA0100322C00010000000032 /* GeoMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200322C00010000000032 /* GeoMath.swift */; };
+		AA0100332C00010000000033 /* GeospatialEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200332C00010000000033 /* GeospatialEngine.swift */; };
+		AA0100342C00010000000034 /* Reality3DSceneManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200342C00010000000034 /* Reality3DSceneManager.swift */; };
+		AA0100352C00010000000035 /* IraqLandmarksService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200352C00010000000035 /* IraqLandmarksService.swift */; };
+		AA0100362C00010000000036 /* GeospatialPersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200362C00010000000036 /* GeospatialPersistenceService.swift */; };
+		AA0100372C00010000000037 /* ARGeographicStudioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200372C00010000000037 /* ARGeographicStudioView.swift */; };
+		AA0100382C00010000000038 /* GeospatialARCameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200382C00010000000038 /* GeospatialARCameraView.swift */; };
+		AA0100392C00010000000039 /* ModelCatalogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200392C00010000000039 /* ModelCatalogView.swift */; };
+		AA01003A2C0001000000003A /* ExploreLandmarksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02003A2C0001000000003A /* ExploreLandmarksView.swift */; };
+		AA01003B2C0001000000003B /* UserProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02003B2C0001000000003B /* UserProfileView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -68,6 +80,18 @@
 		AA0200202C00010000000020 /* MonumentJournalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonumentJournalView.swift; sourceTree = "<group>"; };
 		AA0200232C00010000000023 /* PlacesSearchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacesSearchService.swift; sourceTree = "<group>"; };
 		AA0200252C00010000000025 /* TelemetrySpeedService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetrySpeedService.swift; sourceTree = "<group>"; };
+		AA0200302C00010000000030 /* GeospatialPlacementModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeospatialPlacementModel.swift; sourceTree = "<group>"; };
+		AA0200312C00010000000031 /* USDZModelCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USDZModelCatalog.swift; sourceTree = "<group>"; };
+		AA0200322C00010000000032 /* GeoMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoMath.swift; sourceTree = "<group>"; };
+		AA0200332C00010000000033 /* GeospatialEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeospatialEngine.swift; sourceTree = "<group>"; };
+		AA0200342C00010000000034 /* Reality3DSceneManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reality3DSceneManager.swift; sourceTree = "<group>"; };
+		AA0200352C00010000000035 /* IraqLandmarksService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IraqLandmarksService.swift; sourceTree = "<group>"; };
+		AA0200362C00010000000036 /* GeospatialPersistenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeospatialPersistenceService.swift; sourceTree = "<group>"; };
+		AA0200372C00010000000037 /* ARGeographicStudioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARGeographicStudioView.swift; sourceTree = "<group>"; };
+		AA0200382C00010000000038 /* GeospatialARCameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeospatialARCameraView.swift; sourceTree = "<group>"; };
+		AA0200392C00010000000039 /* ModelCatalogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCatalogView.swift; sourceTree = "<group>"; };
+		AA02003A2C0001000000003A /* ExploreLandmarksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreLandmarksView.swift; sourceTree = "<group>"; };
+		AA02003B2C0001000000003B /* UserProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +139,8 @@
 			children = (
 				AA0200022C00010000000002 /* SpatialAnchorModel.swift */,
 				AA0200162C00010000000016 /* MonumentDiscoveryModel.swift */,
+				AA0200302C00010000000030 /* GeospatialPlacementModel.swift */,
+				AA0200312C00010000000031 /* USDZModelCatalog.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -132,6 +158,11 @@
 				AA0200082C00010000000008 /* SpatialCatalogService.swift */,
 				AA0200232C00010000000023 /* PlacesSearchService.swift */,
 				AA0200252C00010000000025 /* TelemetrySpeedService.swift */,
+				AA0200322C00010000000032 /* GeoMath.swift */,
+				AA0200332C00010000000033 /* GeospatialEngine.swift */,
+				AA0200342C00010000000034 /* Reality3DSceneManager.swift */,
+				AA0200352C00010000000035 /* IraqLandmarksService.swift */,
+				AA0200362C00010000000036 /* GeospatialPersistenceService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -148,6 +179,11 @@
 				AA02000D2C0001000000000D /* BridgesRadarSheet.swift */,
 				AA02000E2C0001000000000E /* ReportHazardSheet.swift */,
 				AA02000F2C0001000000000F /* LiquidGlassModifier.swift */,
+				AA0200372C00010000000037 /* ARGeographicStudioView.swift */,
+				AA0200382C00010000000038 /* GeospatialARCameraView.swift */,
+				AA0200392C00010000000039 /* ModelCatalogView.swift */,
+				AA02003A2C0001000000003A /* ExploreLandmarksView.swift */,
+				AA02003B2C0001000000003B /* UserProfileView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -258,6 +294,18 @@
 				AA0100202C00010000000021 /* AppConfig.swift in Sources */,
 				AA0100222C00010000000023 /* PlacesSearchService.swift in Sources */,
 				AA0100242C00010000000025 /* TelemetrySpeedService.swift in Sources */,
+				AA0100302C00010000000030 /* GeospatialPlacementModel.swift in Sources */,
+				AA0100312C00010000000031 /* USDZModelCatalog.swift in Sources */,
+				AA0100322C00010000000032 /* GeoMath.swift in Sources */,
+				AA0100332C00010000000033 /* GeospatialEngine.swift in Sources */,
+				AA0100342C00010000000034 /* Reality3DSceneManager.swift in Sources */,
+				AA0100352C00010000000035 /* IraqLandmarksService.swift in Sources */,
+				AA0100362C00010000000036 /* GeospatialPersistenceService.swift in Sources */,
+				AA0100372C00010000000037 /* ARGeographicStudioView.swift in Sources */,
+				AA0100382C00010000000038 /* GeospatialARCameraView.swift in Sources */,
+				AA0100392C00010000000039 /* ModelCatalogView.swift in Sources */,
+				AA01003A2C0001000000003A /* ExploreLandmarksView.swift in Sources */,
+				AA01003B2C0001000000003B /* UserProfileView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

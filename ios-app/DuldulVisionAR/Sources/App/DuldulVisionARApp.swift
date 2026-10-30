@@ -7,6 +7,9 @@ struct DuldulVisionARApp: App {
     @StateObject private var incidentManager = IncidentManager()
     @StateObject private var bridgesManager = BridgesManager()
     @StateObject private var discoveryManager = CityMonumentsDiscoveryManager()
+    @StateObject private var persistenceService = GeospatialPersistenceService()
+    @StateObject private var modelCatalog = USDZModelCatalog()
+    @StateObject private var landmarksService = IraqLandmarksService()
     
     var body: some Scene {
         WindowGroup {
@@ -16,6 +19,9 @@ struct DuldulVisionARApp: App {
                 .environmentObject(incidentManager)
                 .environmentObject(bridgesManager)
                 .environmentObject(discoveryManager)
+                .environmentObject(persistenceService)
+                .environmentObject(modelCatalog)
+                .environmentObject(landmarksService)
                 .preferredColorScheme(.dark)
         }
     }

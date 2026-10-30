@@ -29,11 +29,13 @@ public class DuldulMapAnnotation: NSObject, MKAnnotation {
     }
 }
 
-// MARK: - Native MapView Representable with Full Route & 3D Navigation Support
+// MARK: - Native MapView Representable with Full Route, Landmarks & 3D Navigation Support
 public struct NativeMapView: UIViewRepresentable {
     @ObservedObject var navManager: NavigationManager
     var incidents: [CommunityIncident]
     var bridges: [BaghdadBridge]
+    var landmarks: [IraqLandmarkItem]
+    @Binding var targetCenterCoordinate: CLLocationCoordinate2D?
     var onSelectCoordinate: (CLLocationCoordinate2D, String) -> Void
     
     public func makeCoordinator() -> Coordinator {
@@ -53,10 +55,10 @@ public struct NativeMapView: UIViewRepresentable {
         
         // Initial Baghdad Region
         let baghdad = CLLocationCoordinate2D(latitude: 33.3152, longitude: 44.3661)
-        let region = MKCoordinateRegion(center: baghdad, span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08))
+        let region = MKCoordinateRegion(center: baghdad, span: MKCoordinateSpan(latitudeDelta: 0.12, longitudeDelta: 0.12))
         mapView.setRegion(region, animated: false)
         
-        // Tap Gesture to pick destination directly on map
+        // Tap Gesture to pick any geographic point on map
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleMapTap(_:)))
         mapView.addGestureRecognizer(tapGesture)
         
@@ -66,10 +68,19 @@ public struct NativeMapView: UIViewRepresentable {
     public func updateUIView(_ mapView: MKMapView, context: Context) {
         context.coordinator.parent = self
         
+        // Center camera if requested by city switcher
+        if let target = targetCenterCoordinate {
+            let region = MKCoordinateRegion(center: target, span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08))
+            mapView.setRegion(region, animated: true)
+            DispatchQueue.main.async {
+                self.targetCenterCoordinate = nil
+            }
+        }
+        
         // 1. Update Route Polyline Overlay
         updatePolyline(on: mapView)
         
-        // 2. Update Annotations (Bridges, Incidents, Destination)
+        // 2. Update Annotations (Landmarks, Bridges, Incidents, Destination)
         updateAnnotations(on: mapView)
         
         // 3. Camera Handling: 3D Driving Cockpit vs Overview
@@ -94,7 +105,6 @@ public struct NativeMapView: UIViewRepresentable {
             return
         }
         
-        // Avoid rebuilding if identical
         if let existing = currentOverlays.first as? MKPolyline, existing.pointCount == route.coordinates.count {
             return
         }
@@ -102,19 +112,25 @@ public struct NativeMapView: UIViewRepresentable {
         mapView.removeOverlays(currentOverlays)
         let polyline = MKPolyline(coordinates: route.coordinates, count: route.coordinates.count)
         mapView.addOverlay(polyline, level: .aboveRoads)
-        
-        // If not actively navigating, fit the route in view
-        if !navManager.isNavigating {
-            let rect = polyline.boundingMapRect
-            mapView.setVisibleMapRect(rect, edgePadding: UIEdgeInsets(top: 80, left: 40, bottom: 220, right: 40), animated: true)
-        }
     }
     
     private func updateAnnotations(on mapView: MKMapView) {
-        // Collect custom annotations
         var newAnnotations: [DuldulMapAnnotation] = []
         
-        // Baghdad Bridges
+        // 1. Historical & Cultural Landmarks of Iraq
+        for lm in landmarks {
+            let ann = DuldulMapAnnotation(
+                coordinate: lm.coordinate,
+                title: lm.nameArabic,
+                subtitle: "\(lm.cityName) • \(lm.historicalPeriod)",
+                category: "landmark",
+                iconName: "crown.fill",
+                tintColor: .systemCyan
+            )
+            newAnnotations.append(ann)
+        }
+        
+        // 2. Baghdad Bridges
         for bridge in bridges {
             let ann = DuldulMapAnnotation(
                 coordinate: CLLocationCoordinate2D(latitude: bridge.lat, longitude: bridge.lng),
@@ -127,13 +143,12 @@ public struct NativeMapView: UIViewRepresentable {
             newAnnotations.append(ann)
         }
         
-        // Community Incidents (Cameras, Checkpoints, Hazards)
+        // 3. Community Incidents
         for inc in incidents {
             let color: UIColor
             switch inc.type {
             case .speedCamera: color = .systemRed
             case .checkpoint: color = .systemBlue
-            case .trafficJam: color = .systemOrange
             default: color = .systemYellow
             }
             let ann = DuldulMapAnnotation(
@@ -147,7 +162,7 @@ public struct NativeMapView: UIViewRepresentable {
             newAnnotations.append(ann)
         }
         
-        // Active Destination Pin
+        // 4. Active Destination Pin
         if let route = navManager.activeRoute, let lastCoord = route.coordinates.last {
             let destAnn = DuldulMapAnnotation(
                 coordinate: lastCoord,
@@ -160,7 +175,6 @@ public struct NativeMapView: UIViewRepresentable {
             newAnnotations.append(destAnn)
         }
         
-        // Replace non-user annotations cleanly
         let existingCustom = mapView.annotations.filter { !($0 is MKUserLocation) }
         mapView.removeAnnotations(existingCustom)
         mapView.addAnnotations(newAnnotations)
@@ -178,20 +192,16 @@ public struct NativeMapView: UIViewRepresentable {
             let point = gesture.location(in: mapView)
             let coord = mapView.convert(point, toCoordinateFrom: mapView)
             
-            // Reverse geocode tap location to Arabic place name
-            let loc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
-            let geocoder = CLGeocoder()
-            geocoder.reverseGeocodeLocation(loc) { [weak self] placemarks, _ in
-                let name = placemarks?.first?.name ?? placemarks?.first?.thoroughfare ?? "موقع محدد على الخريطة"
-                self?.parent.onSelectCoordinate(coord, name)
-            }
+            // Format coordinate title
+            let title = "نقطة جغرافية (\(String(format: "%.4f", coord.latitude)), \(String(format: "%.4f", coord.longitude)))"
+            parent.onSelectCoordinate(coord, title)
         }
         
         public func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
             if let polyline = overlay as? MKPolyline {
                 let renderer = MKPolylineRenderer(polyline: polyline)
-                renderer.strokeColor = UIColor(red: 0.05, green: 0.70, blue: 1.0, alpha: 0.95)
-                renderer.lineWidth = 7.0
+                renderer.strokeColor = UIColor.systemCyan
+                renderer.lineWidth = 6.0
                 renderer.lineCap = .round
                 renderer.lineJoin = .round
                 return renderer
@@ -200,7 +210,6 @@ public struct NativeMapView: UIViewRepresentable {
         }
         
         public func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-            // Keep native pulsing user puck with direction arrow
             if annotation is MKUserLocation { return nil }
             
             guard let custom = annotation as? DuldulMapAnnotation else { return nil }
@@ -219,6 +228,12 @@ public struct NativeMapView: UIViewRepresentable {
             
             return marker
         }
+        
+        public func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+            if let custom = view.annotation as? DuldulMapAnnotation {
+                parent.onSelectCoordinate(custom.coordinate, custom.title ?? "معلم جغرافي")
+            }
+        }
     }
 }
 
@@ -227,11 +242,31 @@ public struct MapNavigationView: View {
     @EnvironmentObject var navManager: NavigationManager
     @EnvironmentObject var incidentManager: IncidentManager
     @EnvironmentObject var bridgesManager: BridgesManager
+    @EnvironmentObject var landmarksService: IraqLandmarksService
+    @EnvironmentObject var persistenceService: GeospatialPersistenceService
+    @EnvironmentObject var modelCatalog: USDZModelCatalog
     @StateObject private var searchService = PlacesSearchService()
     
     @State private var searchKeyword: String = ""
     @State private var showHazardSheet: Bool = false
     @State private var showBridgesSheet: Bool = false
+    @State private var showStudioSheet: Bool = false
+    @State private var targetCenterCoord: CLLocationCoordinate2D? = nil
+    
+    // Selected Point Inspection State
+    @State private var inspectedCoordinate: CLLocationCoordinate2D? = nil
+    @State private var inspectedPlaceName: String = ""
+    
+    let quickCities: [(name: String, coord: CLLocationCoordinate2D)] = [
+        ("بغداد", CLLocationCoordinate2D(latitude: 33.3152, longitude: 44.3661)),
+        ("بابل", CLLocationCoordinate2D(latitude: 32.5422, longitude: 44.4219)),
+        ("كربلاء", CLLocationCoordinate2D(latitude: 32.6160, longitude: 44.0249)),
+        ("النجف", CLLocationCoordinate2D(latitude: 32.0000, longitude: 44.3333)),
+        ("ذي قار (أور)", CLLocationCoordinate2D(latitude: 30.9628, longitude: 46.1031)),
+        ("أربيل", CLLocationCoordinate2D(latitude: 36.1912, longitude: 44.0091)),
+        ("الموصل", CLLocationCoordinate2D(latitude: 36.3432, longitude: 43.1275)),
+        ("البصرة", CLLocationCoordinate2D(latitude: 30.5133, longitude: 47.8385))
+    ]
     
     public init() {}
     
@@ -242,10 +277,13 @@ public struct MapNavigationView: View {
                 navManager: navManager,
                 incidents: incidentManager.incidents,
                 bridges: bridgesManager.bridges,
+                landmarks: landmarksService.landmarks,
+                targetCenterCoordinate: $targetCenterCoord,
                 onSelectCoordinate: { coord, name in
                     let gen = UIImpactFeedbackGenerator(style: .medium)
                     gen.impactOccurred()
-                    navManager.calculateRoute(to: coord, destName: name) { _ in }
+                    self.inspectedCoordinate = coord
+                    self.inspectedPlaceName = name
                 }
             )
             .edgesIgnoringSafeArea(.all)
@@ -265,19 +303,25 @@ public struct MapNavigationView: View {
             BridgesRadarSheet()
                 .environmentObject(bridgesManager)
         }
+        .sheet(isPresented: $showStudioSheet) {
+            ARGeographicStudioView(initialCoordinate: inspectedCoordinate)
+                .environmentObject(persistenceService)
+                .environmentObject(modelCatalog)
+        }
     }
     
     // MARK: - Browsing Mode Overlays
     private var browsingModeOverlays: some View {
         VStack {
-            // Top Floating Search Capsule
-            VStack(spacing: 0) {
+            // Top Floating Search Capsule + Quick Cities Bar
+            VStack(spacing: 8) {
+                // Search Bar
                 HStack(spacing: 12) {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.cyan)
                         .font(.system(size: 16, weight: .bold))
                     
-                    TextField("وين رايح؟ | ابحث عن أي مكان في العراق...", text: $searchKeyword)
+                    TextField("ابحث عن أي مكان أو معلم في العراق...", text: $searchKeyword)
                         .font(.system(size: 14.5, weight: .medium))
                         .foregroundColor(.white)
                         .onChange(of: searchKeyword) { newValue in
@@ -305,16 +349,38 @@ public struct MapNavigationView: View {
                 .overlay(RoundedRectangle(cornerRadius: searchService.searchResults.isEmpty ? 22 : 16).stroke(Color.white.opacity(0.12), lineWidth: 1))
                 .shadow(color: Color.black.opacity(0.4), radius: 16, y: 6)
                 
-                // Real Live Search Suggestions Dropdown
+                // City Quick Shortcuts
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(quickCities, id: \.name) { city in
+                            Button(action: {
+                                targetCenterCoord = city.coord
+                            }) {
+                                Text(city.name)
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color(red: 0.12, green: 0.15, blue: 0.22).opacity(0.92))
+                                    .foregroundColor(.white)
+                                    .cornerRadius(14)
+                                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.1), lineWidth: 1))
+                            }
+                        }
+                    }
+                }
+                
+                // Search Suggestions Dropdown
                 if !searchService.searchResults.isEmpty && !searchKeyword.isEmpty {
                     VStack(alignment: .leading, spacing: 0) {
-                        ForEach(searchService.searchResults.prefix(6)) { place in
+                        ForEach(searchService.searchResults.prefix(5)) { place in
                             Button(action: {
                                 searchKeyword = ""
                                 searchService.updateQuery("")
                                 let gen = UIImpactFeedbackGenerator(style: .medium)
                                 gen.impactOccurred()
-                                navManager.calculateRoute(to: place.coordinate, destName: place.nameArabic) { _ in }
+                                inspectedCoordinate = place.coordinate
+                                inspectedPlaceName = place.nameArabic
+                                targetCenterCoord = place.coordinate
                             }) {
                                 HStack(spacing: 12) {
                                     Image(systemName: "mappin.and.ellipse")
@@ -327,22 +393,11 @@ public struct MapNavigationView: View {
                                             .foregroundColor(.white)
                                             .lineLimit(1)
                                         
-                                        HStack(spacing: 6) {
-                                            Text(place.city)
-                                                .font(.system(size: 11))
-                                                .foregroundColor(.gray)
-                                            Text("•")
-                                                .font(.system(size: 10))
-                                                .foregroundColor(.gray)
-                                            Text(place.source)
-                                                .font(.system(size: 10, weight: .semibold))
-                                                .foregroundColor(.cyan.opacity(0.85))
-                                        }
+                                        Text(place.city)
+                                            .font(.system(size: 11))
+                                            .foregroundColor(.gray)
                                     }
                                     Spacer()
-                                    Image(systemName: "arrow.up.backward")
-                                        .foregroundColor(.gray)
-                                        .font(.system(size: 12))
                                 }
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 10)
@@ -353,7 +408,6 @@ public struct MapNavigationView: View {
                     .background(Color(red: 0.08, green: 0.10, blue: 0.14).opacity(0.96))
                     .cornerRadius(16)
                     .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.12), lineWidth: 1))
-                    .padding(.top, 6)
                     .shadow(color: Color.black.opacity(0.5), radius: 14, y: 8)
                 }
             }
@@ -362,81 +416,75 @@ public struct MapNavigationView: View {
             
             Spacer()
             
-            // Side Floating Control Buttons
-            HStack {
-                Spacer()
-                VStack(spacing: 12) {
-                    // Bridges Radar Button
-                    Button(action: { showBridgesSheet = true }) {
-                        Image(systemName: "bridge")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.cyan)
-                            .frame(width: 46, height: 46)
-                            .background(Color(red: 0.08, green: 0.10, blue: 0.14).opacity(0.92))
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.white.opacity(0.15), lineWidth: 1))
-                            .shadow(color: Color.black.opacity(0.3), radius: 8, y: 4)
+            // Selected Coordinate Inspector Card
+            if let coord = inspectedCoordinate {
+                VStack(alignment: .trailing, spacing: 10) {
+                    HStack {
+                        Button(action: { inspectedCoordinate = nil }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.gray)
+                                .font(.system(size: 18))
+                        }
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text(inspectedPlaceName)
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundColor(.white)
+                            Text("\(String(format: "%.4f", coord.latitude))°N, \(String(format: "%.4f", coord.longitude))°E")
+                                .font(.system(size: 11, design: .monospaced))
+                                .foregroundColor(.cyan)
+                        }
                     }
                     
-                    // Voice Mute FAB
-                    Button(action: { navManager.toggleVoiceMute() }) {
-                        Image(systemName: navManager.isVoiceMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
-                            .font(.system(size: 17, weight: .bold))
-                            .foregroundColor(navManager.isVoiceMuted ? .gray : .green)
-                            .frame(width: 46, height: 46)
-                            .background(Color.white)
-                            .clipShape(Circle())
-                            .shadow(color: Color.black.opacity(0.3), radius: 8, y: 4)
-                    }
-                    
-                    // Quick Hazard Report Button
-                    Button(action: { showHazardSheet = true }) {
-                        Image(systemName: "triangle.fill")
-                            .font(.system(size: 17, weight: .bold))
-                            .foregroundColor(.orange)
-                            .frame(width: 46, height: 46)
-                            .background(Color(red: 0.08, green: 0.10, blue: 0.14).opacity(0.92))
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.orange.opacity(0.5), lineWidth: 1.5))
-                            .shadow(color: Color.black.opacity(0.3), radius: 8, y: 4)
+                    HStack(spacing: 10) {
+                        // Open in AR Studio Button
+                        Button(action: { showStudioSheet = true }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "cube.transparent")
+                                Text("تخطيط AR في الموقع")
+                            }
+                            .font(.system(size: 12.5, weight: .bold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(Color.cyan)
+                            .foregroundColor(.black)
+                            .cornerRadius(12)
+                        }
+                        
+                        // Navigate Route Button
+                        Button(action: {
+                            navManager.calculateRoute(to: coord, destName: inspectedPlaceName) { _ in }
+                            inspectedCoordinate = nil
+                        }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "arrow.triangle.turn.up.right.diamond.fill")
+                                Text("توجيه ملاحي")
+                            }
+                            .font(.system(size: 12.5, weight: .bold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(Color.white.opacity(0.1))
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
+                        }
                     }
                 }
-                .padding(.trailing, 16)
-            }
-            
-            // Active Route Overview Card (Appears after selecting a destination)
-            if let route = navManager.activeRoute {
+                .padding(14)
+                .background(Color(red: 0.08, green: 0.10, blue: 0.15).opacity(0.96))
+                .cornerRadius(18)
+                .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.cyan.opacity(0.4), lineWidth: 1.5))
+                .padding(.horizontal, 16)
+                .padding(.bottom, 75)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            } else if let route = navManager.activeRoute {
                 RouteOverviewCard(route: route) {
                     let gen = UINotificationFeedbackGenerator()
                     gen.notificationOccurred(.success)
                     navManager.startNavigation()
                 }
                 .padding(.horizontal, 16)
-                .padding(.bottom, 22)
+                .padding(.bottom, 75)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
-            } else {
-                // Quick Iraqi Destination Shortcuts
-                HStack(spacing: 8) {
-                    Button(action: {
-                        navManager.calculateRoute(to: CLLocationCoordinate2D(latitude: 33.3142, longitude: 44.3546), destName: "مول المنصور") { _ in }
-                    }) {
-                        ShortcutPill(icon: "bag.fill", title: "مول المنصور")
-                    }
-                    
-                    Button(action: {
-                        navManager.calculateRoute(to: CLLocationCoordinate2D(latitude: 33.3283, longitude: 44.4081), destName: "ساحة التحرير") { _ in }
-                    }) {
-                        ShortcutPill(icon: "flag.fill", title: "ساحة التحرير")
-                    }
-                    
-                    Button(action: {
-                        navManager.calculateRoute(to: CLLocationCoordinate2D(latitude: 33.2625, longitude: 44.2344), destName: "مطار بغداد الدولي") { _ in }
-                    }) {
-                        ShortcutPill(icon: "airplane", title: "مطار بغداد")
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 22)
             }
         }
     }
@@ -444,7 +492,6 @@ public struct MapNavigationView: View {
     // MARK: - Active Driving Cockpit View
     private var activeDrivingCockpitView: some View {
         VStack {
-            // Top Maneuver Card
             HStack(spacing: 14) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 14)
@@ -459,143 +506,77 @@ public struct MapNavigationView: View {
                     Text("\(Int(navManager.distanceToNextManeuverMeters)) م")
                         .font(.system(size: 30, weight: .black, design: .rounded))
                         .foregroundColor(.white)
+                    
                     Text(navManager.nextManeuverText)
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(.white.opacity(0.95))
+                        .foregroundColor(.white)
                         .lineLimit(1)
                 }
                 Spacer()
-            }
-            .padding(14)
-            .background(Color(red: 0.08, green: 0.10, blue: 0.14).opacity(0.95))
-            .cornerRadius(20)
-            .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.14), lineWidth: 1))
-            .padding(.horizontal, 16)
-            .padding(.top, 10)
-            
-            Spacer()
-            
-            // Bottom Speed & Trip Metrics Bar
-            HStack {
-                // Live GPS Speed Pill
-                VStack(spacing: 0) {
-                    Text("\(Int(navManager.currentSpeedKmh))")
-                        .font(.system(size: 28, weight: .black, design: .rounded))
-                        .foregroundColor(navManager.isSpeedExceeded ? .red : .white)
-                    Text("كم/س")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundColor(.gray)
-                }
-                .frame(width: 62, height: 62)
-                .background(Color(red: 0.08, green: 0.10, blue: 0.14).opacity(0.94))
-                .clipShape(Circle())
-                .overlay(Circle().stroke(navManager.isSpeedExceeded ? Color.red : Color.white.opacity(0.15), lineWidth: 2))
                 
-                Spacer()
-                
-                // Trip ETA Info
-                if let route = navManager.activeRoute {
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text("\(route.totalDurationMin) دقيقة")
-                            .font(.system(size: 20, weight: .heavy))
-                            .foregroundColor(.green)
-                        Text(String(format: "%.1f كم", route.totalDistanceKm))
-                            .font(.system(size: 12))
-                            .foregroundColor(.gray)
-                    }
-                }
-                
-                // End Drive Button
-                Button(action: {
-                    let gen = UIImpactFeedbackGenerator(style: .medium)
-                    gen.impactOccurred()
-                    navManager.stopNavigation()
-                }) {
+                Button(action: { navManager.stopNavigation() }) {
                     Image(systemName: "xmark")
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 15, weight: .bold))
                         .foregroundColor(.white)
-                        .frame(width: 44, height: 44)
-                        .background(Color.red.opacity(0.9))
+                        .padding(10)
+                        .background(Color.red)
                         .clipShape(Circle())
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 24)
+            .padding(14)
+            .background(Color(red: 0.08, green: 0.10, blue: 0.15).opacity(0.96))
+            .cornerRadius(20)
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+            
+            Spacer()
         }
     }
 }
 
 // MARK: - Route Overview Card
-public struct RouteOverviewCard: View {
+struct RouteOverviewCard: View {
     let route: ActiveRoute
     let onStart: () -> Void
     
-    public var body: some View {
+    var body: some View {
         HStack(spacing: 14) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(route.destinationName)
-                    .font(.system(size: 16, weight: .heavy))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
-                
-                HStack(spacing: 8) {
-                    Text("\(route.totalDurationMin) دقيقة")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(.green)
-                    Text("•")
-                        .foregroundColor(.gray)
-                    Text(String(format: "%.1f كم", route.totalDistanceKm))
-                        .font(.system(size: 12))
-                        .foregroundColor(.gray)
+            Button(action: onStart) {
+                HStack(spacing: 6) {
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 14, weight: .black))
+                    Text("انطلق")
+                        .font(.system(size: 16, weight: .black))
                 }
+                .padding(.horizontal, 22)
+                .padding(.vertical, 12)
+                .background(Color.green)
+                .foregroundColor(.black)
+                .cornerRadius(16)
             }
             
             Spacer()
             
-            Button(action: onStart) {
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(route.destinationName)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(.white)
+                
                 HStack(spacing: 6) {
-                    Image(systemName: "location.fill")
-                    Text("انطلاق")
+                    Text("\(String(format: "%.1f", route.totalDistanceKm)) كم")
+                        .font(.system(size: 13, design: .monospaced))
+                        .foregroundColor(.gray)
+                    Text("•")
+                        .foregroundColor(.gray)
+                    Text("\(route.totalDurationMin) دقيقة")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.cyan)
                 }
-                .font(.system(size: 14, weight: .heavy))
-                .foregroundColor(.white)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
-                .background(Color.green)
-                .cornerRadius(18)
-                .shadow(color: Color.green.opacity(0.4), radius: 8, y: 4)
             }
         }
-        .padding(16)
-        .background(Color(red: 0.08, green: 0.10, blue: 0.14).opacity(0.95))
-        .cornerRadius(22)
-        .overlay(RoundedRectangle(cornerRadius: 22).stroke(Color.white.opacity(0.12), lineWidth: 1))
-    }
-}
-
-// MARK: - Shortcut Pill Component
-public struct ShortcutPill: View {
-    public let icon: String
-    public let title: String
-    
-    public init(icon: String, title: String) {
-        self.icon = icon
-        self.title = title
-    }
-    
-    public var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 11))
-                .foregroundColor(.cyan)
-            Text(title)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(.white)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .background(Color(red: 0.08, green: 0.10, blue: 0.14).opacity(0.92))
-        .cornerRadius(12)
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.12), lineWidth: 1))
+        .padding(14)
+        .background(Color(red: 0.08, green: 0.10, blue: 0.15).opacity(0.96))
+        .cornerRadius(20)
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.12), lineWidth: 1))
     }
 }
