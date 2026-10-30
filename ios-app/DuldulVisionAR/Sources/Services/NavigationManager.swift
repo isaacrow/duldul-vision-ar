@@ -132,7 +132,7 @@ public class NavigationManager: NSObject, ObservableObject, CLLocationManagerDel
                 var coords = [CLLocationCoordinate2D](repeating: CLLocationCoordinate2D(), count: mkRoute.polyline.pointCount)
                 mkRoute.polyline.getCoordinates(&coords, range: NSRange(location: 0, length: mkRoute.polyline.pointCount))
                 
-                let steps: [RouteStep] = mkRoute.steps.compactMap { step in
+                let steps: [RouteStep] = mkRoute.steps.compactMap { (step: MKRoute.Step) -> RouteStep? in
                     let text = step.instructions.trimmingCharacters(in: .whitespacesAndNewlines)
                     guard !text.isEmpty else { return nil }
                     return RouteStep(
@@ -190,7 +190,7 @@ public class NavigationManager: NSObject, ObservableObject, CLLocationManagerDel
                         coordinates: [start, destCoords],
                         steps: [RouteStep(instruction: "توجه نحو \(destName)", distanceMeters: 1000, durationSeconds: 600, maneuverType: "straight", streetName: destName)]
                     )
-                    self.activeRoute = directRoute
+                    self?.activeRoute = directRoute
                     completion(true)
                 }
                 return
