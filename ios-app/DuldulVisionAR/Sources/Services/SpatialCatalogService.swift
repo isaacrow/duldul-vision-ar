@@ -5,37 +5,44 @@ public class SpatialCatalogService: ObservableObject {
     @Published public var catalogedAnchors: [SpatialAnchorModel] = []
     @Published public var isSyncing: Bool = false
     
-    // Change to your local machine IP or Cloudflare tunnel URL
-    public var serverBaseURL: String = "https://carey-ice-virginia-market.trycloudflare.com"
-    
-    public init() {
-        loadLocalSeedAnchors()
+    public var serverBaseURL: String {
+        return AppConfig.backendBaseURL
     }
     
-    private func loadLocalSeedAnchors() {
-        catalogedAnchors = [
-            SpatialAnchorModel(
-                title: "عشتار مول",
-                category: .shop,
-                confidence: 0.98,
-                position: SIMD3<Float>(0.0, 1.2, -8.5),
-                worldCoords: WorldCoordinate(latitude: 33.3082, longitude: 44.4023)
-            ),
-            SpatialAnchorModel(
-                title: "صيدلية المنصور الحديثة",
-                category: .shop,
-                confidence: 0.95,
-                position: SIMD3<Float>(-4.2, 0.8, -12.0),
-                worldCoords: WorldCoordinate(latitude: 33.3145, longitude: 44.3812)
-            ),
-            SpatialAnchorModel(
-                title: "سرعة 100 كم/س قصوى",
-                category: .sign,
-                confidence: 0.99,
-                position: SIMD3<Float>(3.8, 2.5, -15.0),
-                worldCoords: WorldCoordinate(latitude: 33.3298, longitude: 44.3645)
-            )
-        ]
+    public init() {
+        fetchSpatialCatalog()
+    }
+    
+    public func fetchSpatialCatalog() {
+        guard let url = URL(string: "\(serverBaseURL)/api/spatial/pois") else { return }
+        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
+            guard let self = self, let data = data, error == nil else { return }
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let pois = json["pois"] as? [[String: Any]] {
+                    let parsed: [SpatialAnchorModel] = pois.compactMap { d in
+                        guard let title = d["name"] as? String,
+                              let catStr = d["category"] as? String,
+                              let lat = d["lat"] as? Double,
+                              let lng = d["lng"] as? Double else { return nil }
+                        let cat = SpatialCategory(rawValue: catStr) ?? .shop
+                        let conf = (d["confidence"] as? Double).map { Float($0) } ?? 1.0
+                        return SpatialAnchorModel(
+                            title: title,
+                            category: cat,
+                            confidence: conf,
+                            position: SIMD3<Float>(0, 1.5, -5.0),
+                            worldCoords: WorldCoordinate(latitude: lat, longitude: lng)
+                        )
+                    }
+                    DispatchQueue.main.async {
+                        self.catalogedAnchors = parsed
+                    }
+                }
+            } catch {
+                print("[SpatialCatalogService] Parse error: \(error)")
+            }
+        }.resume()
     }
     
     public func catalogEntity(

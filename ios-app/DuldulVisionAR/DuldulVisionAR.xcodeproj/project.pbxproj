@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		AA0100012C00010000000001 /* DuldulVisionARApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200012C00010000000001 /* DuldulVisionARApp.swift */; };
+		AA0100202C00010000000021 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200212C00010000000021 /* AppConfig.swift */; };
 		AA0100022C00010000000002 /* SpatialAnchorModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200022C00010000000002 /* SpatialAnchorModel.swift */; };
 		AA0100032C00010000000003 /* ARKitVisionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200032C00010000000003 /* ARKitVisionManager.swift */; };
 		AA0100042C00010000000004 /* LiDARDepthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200042C00010000000004 /* LiDARDepthManager.swift */; };
@@ -37,6 +38,7 @@
 /* Begin PBXFileReference section */
 		AA0300012C00010000000001 /* DuldulVisionAR.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DuldulVisionAR.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0200012C00010000000001 /* DuldulVisionARApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuldulVisionARApp.swift; sourceTree = "<group>"; };
+		AA0200212C00010000000021 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		AA0200022C00010000000002 /* SpatialAnchorModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpatialAnchorModel.swift; sourceTree = "<group>"; };
 		AA0200032C00010000000003 /* ARKitVisionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARKitVisionManager.swift; sourceTree = "<group>"; };
 		AA0200042C00010000000004 /* LiDARDepthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiDARDepthManager.swift; sourceTree = "<group>"; };
@@ -99,6 +101,7 @@
 			isa = PBXGroup;
 			children = (
 				AA0200012C00010000000001 /* DuldulVisionARApp.swift */,
+				AA0200212C00010000000021 /* AppConfig.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";

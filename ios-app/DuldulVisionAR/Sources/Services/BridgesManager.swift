@@ -33,23 +33,63 @@ public struct BaghdadBridge: Identifiable, Codable {
 
 public class BridgesManager: ObservableObject {
     @Published public var bridges: [BaghdadBridge] = []
+    @Published public var isLoading: Bool = false
     
     public init() {
-        loadBridges()
+        fetchLiveBridges()
     }
     
-    public func loadBridges() {
-        bridges = [
-            BaghdadBridge(id: "jadriya", nameArabic: "جسر الجادرية", statusArabic: "ازدحام متوسط", speedKmh: 35, delayMinutes: 8, lat: 33.2840, lng: 44.3810),
-            BaghdadBridge(id: "sinak", nameArabic: "جسر السنك", statusArabic: "سالك بطلاقة", speedKmh: 65, delayMinutes: 1, lat: 33.3280, lng: 44.4020, isFastestRoute: true),
-            BaghdadBridge(id: "ahrar", nameArabic: "جسر الأحرار", statusArabic: "حركة بطيئة", speedKmh: 28, delayMinutes: 10, lat: 33.3340, lng: 44.3980),
-            BaghdadBridge(id: "shuhada", nameArabic: "جسر الشهداء", statusArabic: "سالك", speedKmh: 50, delayMinutes: 3, lat: 33.3410, lng: 44.3910),
-            BaghdadBridge(id: "sarrafiya", nameArabic: "جسر الصرافية (الحديدي)", statusArabic: "سالك", speedKmh: 55, delayMinutes: 2, lat: 33.3590, lng: 44.3790),
-            BaghdadBridge(id: "bab_muadham", nameArabic: "جسر باب المعظم", statusArabic: "ازدحام خانق", speedKmh: 14, delayMinutes: 18, lat: 33.3510, lng: 44.3850),
-            BaghdadBridge(id: "ramadan14", nameArabic: "جسر 14 رمضان (الأعظمية)", statusArabic: "سالك بطلاقة", speedKmh: 70, delayMinutes: 1, lat: 33.3750, lng: 44.3640, isFastestRoute: true),
-            BaghdadBridge(id: "muthanna", nameArabic: "جسر المثنى (شمال بغداد)", statusArabic: "سالك", speedKmh: 68, delayMinutes: 2, lat: 33.4320, lng: 44.3310),
-            BaghdadBridge(id: "muallaq", nameArabic: "الجسر المعلق (الكرادة)", statusArabic: "تدقيق أمني خفيف", speedKmh: 40, delayMinutes: 6, lat: 33.3010, lng: 44.4080),
-            BaghdadBridge(id: "dolaie", nameArabic: "جسر الدباش (الغزالية)", statusArabic: "سالك", speedKmh: 60, delayMinutes: 2, lat: 33.3680, lng: 44.3050)
-        ]
+    public func fetchLiveBridges() {
+        guard let url = URL(string: "\(AppConfig.backendBaseURL)/api/bridges") else { return }
+        isLoading = true
+        
+        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
+            DispatchQueue.main.async {
+                self?.isLoading = false
+            }
+            guard let self = self, let data = data, error == nil else { return }
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let bridgesArray = json["bridges"] as? [[String: Any]] {
+                    let parsed: [BaghdadBridge] = bridgesArray.compactMap { d in
+                        guard let id = d["id"] as? String,
+                              let nameAr = d["name_ar"] as? String,
+                              let lat = d["lat"] as? Double,
+                              let lng = d["lng"] as? Double else { return nil }
+                        
+                        let statusRaw = d["status"] as? String ?? "no_data"
+                        let speed = d["medianSpeedKmh"] as? Int ?? 0
+                        let contributors = d["contributors"] as? Int ?? 0
+                        
+                        let statusArabic: String
+                        if statusRaw == "no_data" || contributors < 3 {
+                            statusArabic = "لا توجد بيانات حركة كافية"
+                        } else if speed > 50 {
+                            statusArabic = "سالك"
+                        } else if speed > 25 {
+                            statusArabic = "حركة بطيئة"
+                        } else {
+                            statusArabic = "مزدحم"
+                        }
+                        
+                        return BaghdadBridge(
+                            id: id,
+                            nameArabic: nameAr,
+                            statusArabic: statusArabic,
+                            speedKmh: speed,
+                            delayMinutes: 0,
+                            lat: lat,
+                            lng: lng,
+                            isFastestRoute: false
+                        )
+                    }
+                    DispatchQueue.main.async {
+                        self.bridges = parsed
+                    }
+                }
+            } catch {
+                print("[BridgesManager] Decode error: \(error)")
+            }
+        }.resume()
     }
 }

@@ -69,29 +69,20 @@ public class IncidentManager: ObservableObject {
     @Published public var incidents: [CommunityIncident] = []
     @Published public var nearbyAlert: CommunityIncident?
     
-    public var serverBaseURL: String = "https://performances-revolutionary-webcams-regarded.trycloudflare.com"
+    public var serverBaseURL: String {
+        return AppConfig.backendBaseURL
+    }
     private var pollTimer: Timer?
     
     public init() {
-        loadSeedIncidents()
+        fetchLiveIncidents()
         startPolling()
-    }
-    
-    private func loadSeedIncidents() {
-        incidents = [
-            CommunityIncident(type: .checkpoint, title: "سيطرة مدخل الجادرية", lat: 33.2785, lng: 44.3820, votes: 14),
-            CommunityIncident(type: .speedCamera, title: "كاميرا رادار طريق المطار", lat: 33.2650, lng: 44.2980, votes: 28),
-            CommunityIncident(type: .trafficJam, title: "ازدحام خانق عند جسر الجادرية", lat: 33.2840, lng: 44.3810, votes: 9),
-            CommunityIncident(type: .accident, title: "حادث مروري على سريع محمد القاسم", lat: 33.3250, lng: 44.4150, votes: 6),
-            CommunityIncident(type: .roadwork, title: "أعمال صيانة شارع فلسطين", lat: 33.3480, lng: 44.4250, votes: 12)
-        ]
     }
     
     private func startPolling() {
         pollTimer = Timer.scheduledTimer(withTimeInterval: 25.0, repeats: true) { [weak self] _ in
             self?.fetchLiveIncidents()
         }
-        fetchLiveIncidents()
     }
     
     public func fetchLiveIncidents() {

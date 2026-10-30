@@ -57,7 +57,9 @@ public class NavigationManager: NSObject, ObservableObject, CLLocationManagerDel
     @Published public var isVoiceMuted: Bool = false
     
     // Server Base URL
-    public var serverBaseURL: String = "https://carey-ice-virginia-market.trycloudflare.com"
+    public var serverBaseURL: String {
+        return AppConfig.backendBaseURL
+    }
     
     public override init() {
         super.init()
@@ -109,13 +111,13 @@ public class NavigationManager: NSObject, ObservableObject, CLLocationManagerDel
         
         let urlString = "\(serverBaseURL)/api/route?startLat=\(start.latitude)&startLng=\(start.longitude)&endLat=\(destCoords.latitude)&endLng=\(destCoords.longitude)"
         guard let url = URL(string: urlString) else {
-            fallbackLocalRoute(start: start, end: destCoords, destName: destName, completion: completion)
+            completion(false)
             return
         }
         
         URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
             guard let self = self, let data = data, error == nil else {
-                self?.fallbackLocalRoute(start: start, end: destCoords, destName: destName, completion: completion)
+                DispatchQueue.main.async { completion(false) }
                 return
             }
             
@@ -123,8 +125,8 @@ public class NavigationManager: NSObject, ObservableObject, CLLocationManagerDel
                 if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                    let primary = json["primaryRoute"] as? [String: Any] {
                     
-                    let distKm = (primary["distanceKm"] as? Double) ?? 5.0
-                    let durMin = (primary["durationMin"] as? Int) ?? 12
+                    let distKm = (primary["distanceKm"] as? Double) ?? 0.0
+                    let durMin = (primary["durationMin"] as? Int) ?? 0
                     
                     // Parse GeoJSON coordinates
                     var coords: [CLLocationCoordinate2D] = []
@@ -139,16 +141,12 @@ public class NavigationManager: NSObject, ObservableObject, CLLocationManagerDel
                         steps = rawSteps.map { s in
                             RouteStep(
                                 instruction: (s["instruction"] as? String) ?? "تابع السير",
-                                distanceMeters: (s["distanceMeters"] as? Double) ?? 500,
-                                durationSeconds: (s["durationSeconds"] as? Double) ?? 60,
+                                distanceMeters: (s["distanceMeters"] as? Double) ?? 0,
+                                durationSeconds: (s["durationSeconds"] as? Double) ?? 0,
                                 maneuverType: (s["maneuverType"] as? String) ?? "straight",
                                 streetName: (s["streetName"] as? String) ?? destName
                             )
                         }
-                    }
-                    
-                    if steps.isEmpty {
-                        steps = self.generateDefaultIraqiSteps(destName: destName, distKm: distKm)
                     }
                     
                     let route = ActiveRoute(
@@ -164,56 +162,12 @@ public class NavigationManager: NSObject, ObservableObject, CLLocationManagerDel
                         completion(true)
                     }
                 } else {
-                    self.fallbackLocalRoute(start: start, end: destCoords, destName: destName, completion: completion)
+                    DispatchQueue.main.async { completion(false) }
                 }
             } catch {
-                self.fallbackLocalRoute(start: start, end: destCoords, destName: destName, completion: completion)
+                DispatchQueue.main.async { completion(false) }
             }
         }.resume()
-    }
-    
-    // Autonomous local fallback routing
-    private func fallbackLocalRoute(
-        start: CLLocationCoordinate2D,
-        end: CLLocationCoordinate2D,
-        destName: String,
-        completion: @escaping (Bool) -> Void
-    ) {
-        let loc1 = CLLocation(latitude: start.latitude, longitude: start.longitude)
-        let loc2 = CLLocation(latitude: end.latitude, longitude: end.longitude)
-        let distanceMeters = loc1.distance(from: loc2)
-        let distKm = max(0.5, (distanceMeters / 1000.0) * 1.25)
-        let durMin = max(2, Int(distKm * 2.2))
-        
-        let coords = [
-            start,
-            CLLocationCoordinate2D(latitude: (start.latitude + end.latitude) / 2, longitude: start.longitude),
-            end
-        ]
-        
-        let steps = generateDefaultIraqiSteps(destName: destName, distKm: distKm)
-        
-        let route = ActiveRoute(
-            destinationName: destName,
-            totalDistanceKm: distKm,
-            totalDurationMin: durMin,
-            coordinates: coords,
-            steps: steps
-        )
-        
-        DispatchQueue.main.async {
-            self.activeRoute = route
-            completion(true)
-        }
-    }
-    
-    private func generateDefaultIraqiSteps(destName: String, distKm: Double) -> [RouteStep] {
-        return [
-            RouteStep(instruction: "انطلق كبل باتجاه \(destName)", distanceMeters: 400, durationSeconds: 45, maneuverType: "straight", streetName: "طريق البداية"),
-            RouteStep(instruction: "ورا 300 متر، لوف يمنة على الشارع الرئيسي", distanceMeters: distKm * 500, durationSeconds: 240, maneuverType: "turn-right", streetName: "الشارع الرئيسي"),
-            RouteStep(instruction: "واصل السير كبل على الطريق السريع", distanceMeters: distKm * 350, durationSeconds: 180, maneuverType: "straight", streetName: "طريق المرور السريع"),
-            RouteStep(instruction: "وصلت لوجهتك بالسلامة: \(destName)", distanceMeters: 50, durationSeconds: 10, maneuverType: "arrive", streetName: destName)
-        ]
     }
     
     // MARK: - Navigation Control
