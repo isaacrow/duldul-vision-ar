@@ -274,11 +274,18 @@ public struct SpatialARScannerView: View {
             syncAllDataSources()
             
             visionManager.onEntityRecognized = { entity in
+                let targetLat = entity.worldCoords?.latitude ?? (navManager.userLocation?.latitude ?? 0.0)
+                let targetLng = entity.worldCoords?.longitude ?? (navManager.userLocation?.longitude ?? 0.0)
+                
+                guard targetLat != 0.0 && targetLng != 0.0 else { return }
+                
                 catalogService.catalogEntity(
                     title: entity.title,
                     category: entity.category,
                     confidence: entity.confidence,
-                    position: entity.position
+                    position: entity.position,
+                    lat: targetLat,
+                    lng: targetLng
                 )
                 syncAllDataSources()
             }

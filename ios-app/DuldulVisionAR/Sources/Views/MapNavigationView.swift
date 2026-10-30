@@ -14,11 +14,18 @@ public struct MapNavigationView: View {
     @EnvironmentObject var navManager: NavigationManager
     @EnvironmentObject var incidentManager: IncidentManager
     @EnvironmentObject var bridgesManager: BridgesManager
+    @StateObject private var searchService = PlacesSearchService()
     
     @State private var searchKeyword: String = ""
     @State private var showHazardSheet: Bool = false
     @State private var showBridgesSheet: Bool = false
     @State private var selectedPOI: MapLocationPOI?
+    
+    // Fallback Initial Region: Only centers dynamically on user location or first search
+    @State private var region = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 33.3152, longitude: 44.3661),
+        span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)
+    )
     
     // Curated Image 2 Iraqi Hub POIs
     private let iraqiPOIs: [MapLocationPOI] = [
@@ -31,11 +38,6 @@ public struct MapNavigationView: View {
         MapLocationPOI(name: "ساحة التحرير", category: "square", iconName: "flag.fill", color: .orange, coordinate: CLLocationCoordinate2D(latitude: 33.3283, longitude: 44.4081)),
         MapLocationPOI(name: "مطار بغداد الدولي", category: "airport", iconName: "airplane", color: .cyan, coordinate: CLLocationCoordinate2D(latitude: 33.2625, longitude: 44.2344))
     ]
-    
-    @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 33.3152, longitude: 44.3661),
-        span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)
-    )
     
     public var body: some View {
         ZStack {
@@ -96,28 +98,99 @@ public struct MapNavigationView: View {
     private var browsingModeOverlays: some View {
         VStack {
             // Top Floating Search Capsule
-            HStack(spacing: 12) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.cyan)
-                    .font(.system(size: 15, weight: .bold))
-                
-                TextField("إلى أين؟ | ابحث عن وجهة في العراق...", text: $searchKeyword)
-                    .font(.system(size: 14.5, weight: .medium))
-                    .foregroundColor(.white)
-                
-                if !searchKeyword.isEmpty {
-                    Button(action: { searchKeyword = "" }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.gray)
+            VStack(spacing: 0) {
+                HStack(spacing: 12) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.cyan)
+                        .font(.system(size: 15, weight: .bold))
+                    
+                    TextField("إلى أين؟ | ابحث عن وجهة في العراق...", text: $searchKeyword)
+                        .font(.system(size: 14.5, weight: .medium))
+                        .foregroundColor(.white)
+                        .onChange(of: searchKeyword) { newValue in
+                            searchService.updateQuery(newValue)
+                        }
+                    
+                    if searchService.isSearching {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .cyan))
+                            .scaleEffect(0.8)
+                    } else if !searchKeyword.isEmpty {
+                        Button(action: {
+                            searchKeyword = ""
+                            searchService.updateQuery("")
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.gray)
+                        }
                     }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(Color(red: 0.08, green: 0.10, blue: 0.14).opacity(0.92))
+                .cornerRadius(searchService.searchResults.isEmpty ? 22 : 16)
+                .overlay(RoundedRectangle(cornerRadius: searchService.searchResults.isEmpty ? 22 : 16).stroke(Color.white.opacity(0.12), lineWidth: 1))
+                .shadow(color: Color.black.opacity(0.35), radius: 16, y: 6)
+                
+                // Real OpenStreetMap Places Autocomplete Results Dropdown
+                if !searchService.searchResults.isEmpty && !searchKeyword.isEmpty {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(searchService.searchResults.prefix(6)) { place in
+                            Button(action: {
+                                selectedPOI = MapLocationPOI(
+                                    name: place.nameArabic,
+                                    category: place.category,
+                                    iconName: "mappin.circle.fill",
+                                    color: .cyan,
+                                    coordinate: place.coordinate
+                                )
+                                region.center = place.coordinate
+                                region.span = MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
+                                searchKeyword = ""
+                                searchService.updateQuery("")
+                                
+                                navManager.calculateRoute(to: place.coordinate, destName: place.nameArabic) { _ in }
+                            }) {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "mappin.and.ellipse")
+                                        .foregroundColor(.cyan)
+                                        .font(.system(size: 14))
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(place.nameArabic)
+                                            .font(.system(size: 14, weight: .bold))
+                                            .foregroundColor(.white)
+                                        
+                                        HStack(spacing: 6) {
+                                            Text(place.city)
+                                                .font(.system(size: 11))
+                                                .foregroundColor(.gray)
+                                            Text("•")
+                                                .font(.system(size: 10))
+                                                .foregroundColor(.gray)
+                                            Text(place.source)
+                                                .font(.system(size: 10, weight: .semibold))
+                                                .foregroundColor(.cyan.opacity(0.8))
+                                        }
+                                    }
+                                    Spacer()
+                                    Image(systemName: "arrow.up.backward")
+                                        .foregroundColor(.gray)
+                                        .font(.system(size: 12))
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 10)
+                            }
+                            Divider().background(Color.white.opacity(0.08))
+                        }
+                    }
+                    .background(Color(red: 0.08, green: 0.10, blue: 0.14).opacity(0.96))
+                    .cornerRadius(16)
+                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.12), lineWidth: 1))
+                    .padding(.top, 6)
+                    .shadow(color: Color.black.opacity(0.4), radius: 12, y: 6)
+                }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(Color(red: 0.08, green: 0.10, blue: 0.14).opacity(0.88))
-            .cornerRadius(22)
-            .overlay(RoundedRectangle(cornerRadius: 22).stroke(Color.white.opacity(0.12), lineWidth: 1))
-            .shadow(color: Color.black.opacity(0.35), radius: 16, y: 6)
             .padding(.horizontal, 16)
             .padding(.top, 10)
             

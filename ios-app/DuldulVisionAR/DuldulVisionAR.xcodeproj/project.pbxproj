@@ -33,6 +33,7 @@
 		AA0100172C00010000000017 /* MonumentDiscoveryAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200182C00010000000018 /* MonumentDiscoveryAlertView.swift */; };
 		AA0100182C00010000000018 /* DiscoveryCelebrationModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200192C00010000000019 /* DiscoveryCelebrationModal.swift */; };
 		AA0100192C00010000000019 /* MonumentJournalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200202C00010000000020 /* MonumentJournalView.swift */; };
+		AA0100222C00010000000023 /* PlacesSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200232C00010000000023 /* PlacesSearchService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -64,6 +65,7 @@
 		AA0200182C00010000000018 /* MonumentDiscoveryAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonumentDiscoveryAlertView.swift; sourceTree = "<group>"; };
 		AA0200192C00010000000019 /* DiscoveryCelebrationModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveryCelebrationModal.swift; sourceTree = "<group>"; };
 		AA0200202C00010000000020 /* MonumentJournalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonumentJournalView.swift; sourceTree = "<group>"; };
+		AA0200232C00010000000023 /* PlacesSearchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacesSearchService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -126,6 +128,7 @@
 				AA0200062C00010000000006 /* IncidentManager.swift */,
 				AA0200072C00010000000007 /* BridgesManager.swift */,
 				AA0200082C00010000000008 /* SpatialCatalogService.swift */,
+				AA0200232C00010000000023 /* PlacesSearchService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -250,6 +253,7 @@
 				AA0100182C00010000000018 /* DiscoveryCelebrationModal.swift in Sources */,
 				AA0100192C00010000000019 /* MonumentJournalView.swift in Sources */,
 				AA0100202C00010000000021 /* AppConfig.swift in Sources */,
+				AA0100222C00010000000023 /* PlacesSearchService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
