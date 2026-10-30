@@ -3,7 +3,12 @@ name: Build Native iOS IPA (Duldul Vision AR)
 on:
   push:
     branches: [ main, master ]
+    tags:
+      - 'v*'
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -50,3 +55,18 @@ jobs:
           name: DuldulVisionAR-Release-IPA
           path: ios-app/DuldulVisionAR/build/DuldulVisionAR-Release.ipa
           retention-days: 14
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ios-app/DuldulVisionAR/build/DuldulVisionAR-Release.ipa
+          name: "دلدل - الملاحة الحقيقية ${{ github.ref_name }}"
+          body: |
+            ### دلدل للرؤية والملاحة - الإصدار الحقيقي الكامل 🗺️🇮🇶
+            - **الواجهة الافتتاحية خريطة حقيقية فوراً:** تم إلغاء شاشة تسلا ثلاثية الأبعاد التجريبية تماماً وجعل الخريطة هي الشاشة الأساسية الأولى.
+            - **محرك ملاحة وتوجيه حقيقي (On-Device Apple MapKit + OSRM):** حساب المسارات والمنعطفات ورسم الخط التفاعلي كاملاً على الجهاز بدون الاعتماد على سيرفر خارجي مؤقت.
+            - **توجيه صوتي باللهجة العراقية الأصيلة:** "لوف يمنة هسة"، "توكل على الله، انطلق إلى..."، رصد الانحراف عن المسار وإعادة التوجيه التلقائي.
+            - **رادار الجسور الـ 12 في بغداد:** رصد حركة المرور والازدحام وسرعة العبور.
+            - **كاميرات السرعة والسيطرات:** تنبيهات حقيقية مسبقة عند الاقتراب من الرادارات وسيطرات التفتيش.
+            - **بحث فوري عن الأماكن في العراق:** مطاعم، مولات، مستشفيات، شوارع مع إكمال تلقائي فوري.

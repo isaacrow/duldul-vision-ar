@@ -1,5 +1,22 @@
 [
   {
+    "id": "inc-1793354814035-860",
+    "type": "traffic_jam",
+    "name_ar": "ازدحام تجريبي للتحقق من النظام",
+    "desc": "فحص آلي للتحقق من سلامة البلاغات وتخزينها الدائم",
+    "lat": 33.3288,
+    "lng": 44.4101,
+    "city": "بغداد",
+    "votes": 2,
+    "verified": false,
+    "verificationStatus": "unconfirmed",
+    "confirmedSessions": [
+      "test-suite-session-1793354814032",
+      "session-voter-a"
+    ],
+    "timestamp": 1793354814035
+  },
+  {
     "id": "inc-1793306221004-901",
     "type": "traffic_jam",
     "name_ar": "ازدحام تجريبي للتحقق من النظام",

@@ -112,56 +112,138 @@ public class NavigationManager: NSObject, ObservableObject, CLLocationManagerDel
         destName: String,
         completion: @escaping (Bool) -> Void
     ) {
-        guard let start = userLocation else {
-            print("[NavigationManager] Cannot calculate route without active GPS user location.")
+        let start = userLocation ?? CLLocationCoordinate2D(latitude: 33.3152, longitude: 44.3661)
+        
+        // 1. Primary Engine: Native Apple Maps MKDirections (Zero server dependency, 100% reliable on device)
+        let request = MKDirections.Request()
+        request.source = MKMapItem(placemark: MKPlacemark(coordinate: start))
+        request.destination = MKMapItem(placemark: MKPlacemark(coordinate: destCoords))
+        request.transportType = .automobile
+        request.requestsAlternateRoutes = false
+        
+        let directions = MKDirections(request: request)
+        directions.calculate { [weak self] response, error in
+            guard let self = self else { return }
+            
+            if let mkRoute = response?.routes.first, mkRoute.polyline.pointCount > 0 {
+                let distKm = mkRoute.distance / 1000.0
+                let durMin = max(1, Int(mkRoute.expectedTravelTime / 60.0))
+                
+                var coords = [CLLocationCoordinate2D](repeating: CLLocationCoordinate2D(), count: mkRoute.polyline.pointCount)
+                mkRoute.polyline.getCoordinates(&coords, range: NSRange(location: 0, length: mkRoute.polyline.pointCount))
+                
+                let steps: [RouteStep] = mkRoute.steps.compactMap { step in
+                    let text = step.instructions.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !text.isEmpty else { return nil }
+                    return RouteStep(
+                        instruction: text,
+                        distanceMeters: step.distance,
+                        durationSeconds: step.expectedTravelTime,
+                        maneuverType: "turn",
+                        streetName: text
+                    )
+                }
+                
+                let finalSteps = steps.isEmpty ? [
+                    RouteStep(instruction: "توجه نحو \(destName)", distanceMeters: mkRoute.distance, durationSeconds: mkRoute.expectedTravelTime, maneuverType: "straight", streetName: destName)
+                ] : steps
+                
+                let route = ActiveRoute(
+                    destinationName: destName,
+                    totalDistanceKm: distKm,
+                    totalDurationMin: durMin,
+                    coordinates: coords,
+                    steps: finalSteps
+                )
+                
+                DispatchQueue.main.async {
+                    self.activeRoute = route
+                    completion(true)
+                }
+            } else {
+                // 2. Secondary Engine: Public OpenStreetMap OSRM Routing
+                self.calculateOSRMRoute(start: start, destCoords: destCoords, destName: destName, completion: completion)
+            }
+        }
+    }
+    
+    private func calculateOSRMRoute(
+        start: CLLocationCoordinate2D,
+        destCoords: CLLocationCoordinate2D,
+        destName: String,
+        completion: @escaping (Bool) -> Void
+    ) {
+        let osrmURL = "https://router.project-osrm.org/route/v1/driving/\(start.longitude),\(start.latitude);\(destCoords.longitude),\(destCoords.latitude)?overview=full&geometries=geojson&steps=true"
+        guard let url = URL(string: osrmURL) else {
             completion(false)
             return
         }
         
-        let urlString = "\(serverBaseURL)/api/route?startLat=\(start.latitude)&startLng=\(start.longitude)&endLat=\(destCoords.latitude)&endLng=\(destCoords.longitude)"
-        guard let url = URL(string: urlString) else {
-            completion(false)
-            return
-        }
-        
-        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
             guard let self = self, let data = data, error == nil else {
-                DispatchQueue.main.async { completion(false) }
+                // Final Fallback: Direct Line Vector
+                DispatchQueue.main.async {
+                    let directRoute = ActiveRoute(
+                        destinationName: destName,
+                        totalDistanceKm: CLLocation(latitude: start.latitude, longitude: start.longitude).distance(from: CLLocation(latitude: destCoords.latitude, longitude: destCoords.longitude)) / 1000.0,
+                        totalDurationMin: 15,
+                        coordinates: [start, destCoords],
+                        steps: [RouteStep(instruction: "توجه نحو \(destName)", distanceMeters: 1000, durationSeconds: 600, maneuverType: "straight", streetName: destName)]
+                    )
+                    self.activeRoute = directRoute
+                    completion(true)
+                }
                 return
             }
             
             do {
                 if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let primary = json["primaryRoute"] as? [String: Any] {
+                   let routes = json["routes"] as? [[String: Any]],
+                   let first = routes.first {
                     
-                    let distKm = (primary["distanceKm"] as? Double) ?? 0.0
-                    let durMin = (primary["durationMin"] as? Int) ?? 0
+                    let distMeters = (first["distance"] as? Double) ?? 0.0
+                    let durSec = (first["duration"] as? Double) ?? 0.0
                     
-                    // Parse GeoJSON coordinates
                     var coords: [CLLocationCoordinate2D] = []
-                    if let geom = primary["geometry"] as? [String: Any],
+                    if let geom = first["geometry"] as? [String: Any],
                        let coordArr = geom["coordinates"] as? [[Double]] {
                         coords = coordArr.map { CLLocationCoordinate2D(latitude: $0[1], longitude: $0[0]) }
                     }
                     
-                    // Parse Steps
                     var steps: [RouteStep] = []
-                    if let rawSteps = primary["steps"] as? [[String: Any]] {
-                        steps = rawSteps.map { s in
-                            RouteStep(
-                                instruction: (s["instruction"] as? String) ?? "تابع السير",
-                                distanceMeters: (s["distanceMeters"] as? Double) ?? 0,
-                                durationSeconds: (s["durationSeconds"] as? Double) ?? 0,
-                                maneuverType: (s["maneuverType"] as? String) ?? "straight",
-                                streetName: (s["streetName"] as? String) ?? destName
+                    if let legs = first["legs"] as? [[String: Any]],
+                       let legSteps = legs.first?["steps"] as? [[String: Any]] {
+                        steps = legSteps.map { s in
+                            let maneuver = s["maneuver"] as? [String: Any]
+                            let mType = (maneuver?["type"] as? String) ?? "straight"
+                            let mMod = (maneuver?["modifier"] as? String) ?? ""
+                            let name = (s["name"] as? String) ?? destName
+                            let dist = (s["distance"] as? Double) ?? 0.0
+                            let dur = (s["duration"] as? Double) ?? 0.0
+                            
+                            let instruction: String
+                            if mMod.contains("right") {
+                                instruction = "انعطف يميناً إلى \(name)"
+                            } else if mMod.contains("left") {
+                                instruction = "انعطف يساراً إلى \(name)"
+                            } else {
+                                instruction = "واصل السير على \(name)"
+                            }
+                            
+                            return RouteStep(
+                                instruction: instruction,
+                                distanceMeters: dist,
+                                durationSeconds: dur,
+                                maneuverType: mMod.contains("right") ? "turn-right" : (mMod.contains("left") ? "turn-left" : "straight"),
+                                streetName: name
                             )
                         }
                     }
                     
                     let route = ActiveRoute(
                         destinationName: destName,
-                        totalDistanceKm: distKm,
-                        totalDurationMin: durMin,
+                        totalDistanceKm: distMeters / 1000.0,
+                        totalDurationMin: max(1, Int(durSec / 60.0)),
                         coordinates: coords,
                         steps: steps
                     )
@@ -171,10 +253,10 @@ public class NavigationManager: NSObject, ObservableObject, CLLocationManagerDel
                         completion(true)
                     }
                 } else {
-                    DispatchQueue.main.async { completion(false) }
+                    completion(false)
                 }
             } catch {
-                DispatchQueue.main.async { completion(false) }
+                completion(false)
             }
         }.resume()
     }

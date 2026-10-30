@@ -19,7 +19,7 @@ public struct AppConfig {
             #if DEBUG
             return "http://localhost:3000"
             #else
-            return "https://carey-ice-virginia-market.trycloudflare.com"
+            return "http://localhost:3000"
             #endif
         }
         set {
@@ -27,6 +27,8 @@ public struct AppConfig {
         }
     }
     
+    public static let osrmRoutingBaseURL: String = "https://router.project-osrm.org"
+    public static let photonGeocodingBaseURL: String = "https://photon.komoot.io"
     public static let mapboxFallbackEnabled: Bool = false
-    public static let appVersion: String = "1.1.0"
+    public static let appVersion: String = "1.7.0"
 }

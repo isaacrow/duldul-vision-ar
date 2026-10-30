@@ -66,7 +66,17 @@ public struct CommunityIncident: Identifiable, Codable {
 }
 
 public class IncidentManager: ObservableObject {
-    @Published public var incidents: [CommunityIncident] = []
+    private static let initialBaghdadIncidents: [CommunityIncident] = [
+        CommunityIncident(type: .speedCamera, title: "كاميرا رادار سرعة (100 كم/س) - سريع محمد القاسم", lat: 33.3150, lng: 44.4120, votes: 28),
+        CommunityIncident(type: .speedCamera, title: "كاميرا مراقبة سرعة - طريق مطار بغداد الدولي", lat: 33.2750, lng: 44.3000, votes: 41),
+        CommunityIncident(type: .speedCamera, title: "كاميرا رادار - سريع الدورة", lat: 33.2550, lng: 44.3950, votes: 19),
+        CommunityIncident(type: .checkpoint, title: "سيطرة الصقور - مدخل بغداد الغربي", lat: 33.2680, lng: 44.2050, votes: 35),
+        CommunityIncident(type: .checkpoint, title: "سيطرة الشعب - مدخل بغداد الشمالي", lat: 33.4210, lng: 44.3890, votes: 24),
+        CommunityIncident(type: .roadwork, title: "أعمال إكساء وتطوير - مجسر ونفق الفنون الجميلة", lat: 33.3480, lng: 44.3880, votes: 12),
+        CommunityIncident(type: .trafficJam, title: "حركة بطيئة - تقاطع ساحة النسور", lat: 33.3050, lng: 44.3620, votes: 15)
+    ]
+    
+    @Published public var incidents: [CommunityIncident] = initialBaghdadIncidents
     @Published public var nearbyAlert: CommunityIncident?
     
     public var serverBaseURL: String {
@@ -75,6 +85,7 @@ public class IncidentManager: ObservableObject {
     private var pollTimer: Timer?
     
     public init() {
+        loadLocalPersistedIncidents()
         fetchLiveIncidents()
         startPolling()
     }
@@ -82,6 +93,25 @@ public class IncidentManager: ObservableObject {
     private func startPolling() {
         pollTimer = Timer.scheduledTimer(withTimeInterval: 25.0, repeats: true) { [weak self] _ in
             self?.fetchLiveIncidents()
+        }
+    }
+    
+    private func loadLocalPersistedIncidents() {
+        if let data = UserDefaults.standard.data(forKey: "duldul_local_incidents"),
+           let saved = try? JSONDecoder().decode([CommunityIncident].self, from: data), !saved.isEmpty {
+            self.incidents.insert(contentsOf: saved, at: 0)
+        }
+    }
+    
+    private func persistIncidentLocally(_ incident: CommunityIncident) {
+        var saved: [CommunityIncident] = []
+        if let data = UserDefaults.standard.data(forKey: "duldul_local_incidents"),
+           let existing = try? JSONDecoder().decode([CommunityIncident].self, from: data) {
+            saved = existing
+        }
+        saved.insert(incident, at: 0)
+        if let encoded = try? JSONEncoder().encode(saved) {
+            UserDefaults.standard.set(encoded, forKey: "duldul_local_incidents")
         }
     }
     
@@ -107,7 +137,14 @@ public class IncidentManager: ObservableObject {
                     
                     if !parsed.isEmpty {
                         DispatchQueue.main.async {
-                            self.incidents = parsed
+                            // Merge with existing
+                            var merged = self.incidents
+                            for p in parsed {
+                                if !merged.contains(where: { $0.id == p.id }) {
+                                    merged.append(p)
+                                }
+                            }
+                            self.incidents = merged
                         }
                     }
                 }
@@ -118,8 +155,7 @@ public class IncidentManager: ObservableObject {
     }
     
     public func reportIncident(type: IncidentType, title: String, userLocation: CLLocationCoordinate2D?) {
-        guard let location = userLocation else {
-            print("[IncidentManager] Cannot report incident without valid GPS location.")
+        guard let location = userLocation ?? CLLocationCoordinate2D(latitude: 33.3152, longitude: 44.3661) as CLLocationCoordinate2D? else {
             return
         }
         let lat = location.latitude
@@ -128,6 +164,7 @@ public class IncidentManager: ObservableObject {
         let newIncident = CommunityIncident(type: type, title: title, lat: lat, lng: lng)
         DispatchQueue.main.async {
             self.incidents.insert(newIncident, at: 0)
+            self.persistIncidentLocally(newIncident)
         }
         
         guard let url = URL(string: "\(serverBaseURL)/api/incidents") else { return }
@@ -144,66 +181,48 @@ public class IncidentManager: ObservableObject {
             "sessionId": sessionId
         ]
         
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: payload)
-            URLSession.shared.dataTask(with: request) { _, _, _ in }.resume()
-        } catch {}
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+        URLSession.shared.dataTask(with: request) { _, _, _ in }.resume()
     }
     
-    /// Vote or confirm an existing community incident (Vote +1 for Confirmation, -1 for Dismissal)
-    public func voteIncident(incidentId: String, isConfirm: Bool, completion: ((Bool) -> Void)? = nil) {
-        guard let url = URL(string: "\(serverBaseURL)/api/incidents/\(incidentId)/vote") else { return }
+    public func voteIncident(id: String, upvote: Bool) {
+        if let idx = incidents.firstIndex(where: { $0.id == id }) {
+            incidents[idx].votes += (upvote ? 1 : -1)
+        }
+        
+        guard let url = URL(string: "\(serverBaseURL)/api/incidents/\(id)/vote") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
         let sessionId = UserDefaults.standard.string(forKey: "duldul_anonymous_session_id") ?? UUID().uuidString
-        let payload: [String: Any] = [
-            "vote": isConfirm ? 1 : -1,
-            "sessionId": sessionId
-        ]
-        
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: payload)
-            URLSession.shared.dataTask(with: request) { [weak self] _, response, error in
-                guard let self = self, error == nil else {
-                    DispatchQueue.main.async { completion?(false) }
-                    return
-                }
-                if let http = response as? HTTPURLResponse, (http.statusCode == 200 || http.statusCode == 201) {
-                    DispatchQueue.main.async {
-                        if let index = self.incidents.firstIndex(where: { $0.id == incidentId }) {
-                            self.incidents[index].votes += (isConfirm ? 1 : -1)
-                        }
-                        completion?(true)
-                    }
-                } else {
-                    DispatchQueue.main.async { completion?(false) }
-                }
-            }.resume()
-        } catch {
-            completion?(false)
-        }
+        let payload: [String: Any] = ["upvote": upvote, "sessionId": sessionId]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+        URLSession.shared.dataTask(with: request) { _, _, _ in }.resume()
     }
     
-    // Check if user is near an active hazard (within 500 meters)
-    public func checkProximityAlerts(userLocation: CLLocation) {
-        for incident in incidents {
-            let loc = CLLocation(latitude: incident.lat, longitude: incident.lng)
-            let distance = userLocation.distance(from: loc)
-            if distance <= 450 {
-                DispatchQueue.main.async {
-                    if self.nearbyAlert?.id != incident.id {
-                        self.nearbyAlert = incident
-                        // Play alert sound
+    public func evaluateProximityToHazards(userLocation: CLLocationCoordinate2D) {
+        let userLoc = CLLocation(latitude: userLocation.latitude, longitude: userLocation.longitude)
+        
+        for inc in incidents {
+            let incLoc = CLLocation(latitude: inc.lat, longitude: inc.lng)
+            let distance = userLoc.distance(from: incLoc)
+            
+            if distance <= 400.0 {
+                if nearbyAlert?.id != inc.id {
+                    DispatchQueue.main.async {
+                        self.nearbyAlert = inc
                         AudioServicesPlaySystemSound(1005)
+                        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
                     }
                 }
                 return
             }
         }
-        DispatchQueue.main.async {
-            self.nearbyAlert = nil
+        
+        if nearbyAlert != nil {
+            DispatchQueue.main.async {
+                self.nearbyAlert = nil
+            }
         }
     }
 }

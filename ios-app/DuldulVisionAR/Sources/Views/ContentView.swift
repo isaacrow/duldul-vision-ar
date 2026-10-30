@@ -14,15 +14,15 @@ public struct ContentView: View {
             Group {
                 switch selectedTab {
                 case 0:
-                    TeslaFSDVectorSpaceView()
+                    MapNavigationView()
                 case 1:
                     SpatialARScannerView()
                 case 2:
-                    MapNavigationView()
+                    BridgesRadarSheet()
                 case 3:
                     MonumentJournalView()
                 default:
-                    BridgesRadarSheet()
+                    MapNavigationView()
                 }
             }
             .edgesIgnoringSafeArea(.all)
@@ -62,11 +62,10 @@ public struct ContentView: View {
             // Ultra-Clean Native Tab Bar Switcher (Hidden during active navigation for full immersion)
             if !navManager.isNavigating {
                 HStack(spacing: 12) {
-                    TabButton(index: 0, title: "تسلا 3D", icon: "car.side.fill", selectedTab: $selectedTab)
+                    TabButton(index: 0, title: "الخريطة والملاحة", icon: "map.fill", selectedTab: $selectedTab)
                     TabButton(index: 1, title: "ماسح AR", icon: "camera.viewfinder", selectedTab: $selectedTab)
-                    TabButton(index: 2, title: "الخريطة", icon: "map.fill", selectedTab: $selectedTab)
-                    TabButton(index: 3, title: "المعالم والآثار", icon: "sparkles", selectedTab: $selectedTab)
-                    TabButton(index: 4, title: "الجسور", icon: "bridge", selectedTab: $selectedTab)
+                    TabButton(index: 2, title: "رادار الجسور", icon: "bridge", selectedTab: $selectedTab)
+                    TabButton(index: 3, title: "سجل المعالم", icon: "sparkles", selectedTab: $selectedTab)
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
